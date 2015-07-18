@@ -156,4 +156,12 @@ EVENT(E_EXCLUSIVENETBROADCAST, ExclusiveNetBroadcast)
 	PARAM(P_MSG, Msg);// Buffer
 }
 
+EVENT(E_GETLC, GetLc)
+{
+	PARAM(P_NODE, Node);// node pointer
+	PARAM(P_CONNECTION, Connection);// connection pointer
+}
+
 extern const int GAMEMODEMSG_RESPAWNNODE;
+extern const int GAMEMODEMSG_GETLC;
+extern const int GAMEMODEMSG_SETLC;

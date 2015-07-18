@@ -135,6 +135,16 @@ void DotsNetCrits::HandleNetworkMessage(StringHash eventType, VariantMap& eventD
         		RespawnNode(sceneNode, index);
         	}
         }
+        else if (gmMSG == GAMEMODEMSG_GETLC)
+        {
+        	int clientID = msg.ReadInt();
+        	SharedPtr<Node> sceneNode = SharedPtr<Node>( main_->GetSceneNode(clientID) );
+
+        	VariantMap vm;
+        	vm[GetLc::P_NODE] = sceneNode;
+        	vm[GetLc::P_CONNECTION] = sender;
+        	SendEvent(E_GETLC, vm);
+        }
     }
 }
 
@@ -173,6 +183,13 @@ void DotsNetCrits::HandleNewClientID(StringHash eventType, VariantMap& eventData
 			msg_.WriteInt(clientID);
 			msg_.WriteInt(index);
 			network_->BroadcastMessage(MSG_GAMEMODEMSG, true, true, msg_);
+		}
+		else
+		{
+			msg_.Clear();
+			msg_.WriteInt(GAMEMODEMSG_GETLC);
+			msg_.WriteInt(clientID);
+			network_->GetServerConnection()->SendMessage(MSG_GAMEMODEMSG, true, true, msg_);
 		}
 	}
 }

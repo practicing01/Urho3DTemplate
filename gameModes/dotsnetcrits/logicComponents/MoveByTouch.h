@@ -40,6 +40,7 @@ public:
 	void HandleSetLagTime(StringHash eventType, VariantMap& eventData);
 	void HandleSetConnection(StringHash eventType, VariantMap& eventData);
 	void HandleSetIsServer(StringHash eventType, VariantMap& eventData);
+	void HandleGetLc(StringHash eventType, VariantMap& eventData);
 	void OnMoveToComplete();
 	void MoveTo(Vector3 dest, float speed, float speedRamp, float gravity, float gravityRamp, bool stopOnCompletion, bool sendToServer);
 

@@ -58,8 +58,6 @@ void ClientInfo::HandleClientSync(StringHash eventType, VariantMap& eventData)
 	msg_.WriteInt(clientID_);
 	sender->SendMessage(MSG_CLIENTID, true, true, msg_);
 
-	//todo sync components here?
-
 	if (connection_ != NULL)
 	{
 		msg_.Clear();

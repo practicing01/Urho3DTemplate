@@ -385,6 +385,7 @@ void MoveByTouch::HandleSetConnection(StringHash eventType, VariantMap& eventDat
 
 		SubscribeToEvent(modelNode_, E_NODECOLLISION, HANDLER(MoveByTouch, HandleNodeCollision));
 		SubscribeToEvent(E_LCMSG, HANDLER(MoveByTouch, HandleLCMSG));
+		SubscribeToEvent(E_GETLC, HANDLER(MoveByTouch, HandleGetLc));
 
 		if (main_->IsLocalClient(node_))
 		{
@@ -463,4 +464,36 @@ void MoveByTouch::HandleSetLagTime(StringHash eventType, VariantMap& eventData)
 void MoveByTouch::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 {
 	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
+}
+
+void MoveByTouch::HandleGetLc(StringHash eventType, VariantMap& eventData)
+{
+	Node* clientNode = (Node*)(eventData[GetLc::P_NODE].GetPtr());
+
+	if (clientNode == node_)
+	{
+		Connection* conn = (Connection*)(eventData[GetLc::P_CONNECTION].GetPtr());
+
+		SubscribeToEvent(E_SETLAGTIME, HANDLER(MoveByTouch, HandleSetLagTime));
+
+		VariantMap vm;
+		vm[GetLagTime::P_CONNECTION] = conn;
+		SendEvent(E_GETLAGTIME, vm);
+
+		//todo change to be asynchronous
+		float speedRamp = speedRamp_ + (moveToSpeed_ * lagTime_);
+		float gravityRamp = gravityRamp_ + (gravity_ * lagTime_);
+
+		msg_.Clear();
+		msg_.WriteInt(clientID_);
+		msg_.WriteString("MoveByTouch");
+		msg_.WriteVector3(moveToLoc_);
+		msg_.WriteVector3(moveToDest_);
+		msg_.WriteFloat(moveToSpeed_);
+		msg_.WriteFloat(speedRamp);
+		msg_.WriteFloat(gravity_);
+		msg_.WriteFloat(gravityRamp);
+		msg_.WriteBool(moveToStopOnTime_);
+		conn->SendMessage(MSG_LCMSG, true, true, msg_);
+	}
 }
