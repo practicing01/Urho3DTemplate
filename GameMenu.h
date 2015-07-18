@@ -1,0 +1,51 @@
+/*
+ * GameMenu.h
+ *
+ *  Created on: Jul 6, 2015
+ *      Author: practicing01
+ */
+
+#pragma once
+
+#include <Urho3D/Urho3D.h>
+
+#include <Urho3D/Core/Object.h>
+#include <Urho3D/Scene/LogicComponent.h>
+#include "Urho3DPlayer.h"
+#include <Urho3D/Network/Network.h>
+
+#include "Urho3DPlayer.h"
+#include "Constants.h"
+#include "network/ServerInfo.h"
+
+using namespace Urho3D;
+
+class GameMenu : public LogicComponent
+{
+	OBJECT(GameMenu);
+public:
+	GameMenu(Context* context, Urho3DPlayer* main);
+	~GameMenu();
+
+	void HandleUpdate(StringHash eventType, VariantMap& eventData);
+	virtual void Start();
+	void HandleServerConnect(StringHash eventType, VariantMap& eventData);
+    void HandleNetworkMessage(StringHash eventType, VariantMap& eventData);
+    void HandleItemSelected(StringHash eventType, VariantMap& eventData);
+	void HandleButtonRelease(StringHash eventType, VariantMap& eventData);
+	void HandleDisplayMenu(StringHash eventType, VariantMap& eventData);
+	void QueryMasterServer();
+
+	Urho3DPlayer* main_;
+	float elapsedTime_;
+
+	Network* network_;
+	VectorBuffer msg_;
+
+	SharedPtr<UIElement> gameMenu_;
+	SharedPtr<UIElement> mainMenuButt_;
+	Vector<ServerInfo*> servers_;
+
+	bool masterServerConnected_;
+	String masterServerIP_;
+};
