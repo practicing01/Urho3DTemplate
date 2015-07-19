@@ -35,6 +35,7 @@ ThirdPersonCamera::ThirdPersonCamera(Context* context, Urho3DPlayer* main) :
 	LogicComponent(context)
 {
 	main_ = main;
+	isEnabled_ = true;
 }
 
 ThirdPersonCamera::~ThirdPersonCamera()
@@ -55,6 +56,7 @@ void ThirdPersonCamera::Start()
 
 	SubscribeToEvent(E_SETCLIENTCAMERA, HANDLER(ThirdPersonCamera, HandleSetCamera));
 	SubscribeToEvent(E_SETCLIENTMODELNODE, HANDLER(ThirdPersonCamera, HandleSetClientModelNode));
+	SubscribeToEvent(E_MECHANICREQUEST, HANDLER(ThirdPersonCamera, HandleMechanicRequest));
 
 	VariantMap vm0;
 	vm0[GetClientModelNode::P_NODE] = node_;
@@ -63,24 +65,6 @@ void ThirdPersonCamera::Start()
 	VariantMap vm;
 	vm[GetClientCamera::P_NODE] = node_;
 	SendEvent(E_GETCLIENTCAMERA, vm);
-}
-
-void ThirdPersonCamera::OnSetEnabled()
-{
-	if (modelNode_ == NULL)
-	{
-		return;
-	}
-
-	if (IsEnabled())
-	{
-		modelNode_->GetChild("camera")->SetPosition(camOrigin_);
-		SubscribeToEvent(E_POSTUPDATE, HANDLER(ThirdPersonCamera, HandlePostUpdate));
-	}
-	else
-	{
-		UnsubscribeFromEvent(E_POSTUPDATE);
-	}
 }
 
 void ThirdPersonCamera::HandleSetCamera(StringHash eventType, VariantMap& eventData)
@@ -204,4 +188,25 @@ void ThirdPersonCamera::HandlePostUpdate(StringHash eventType, VariantMap& event
 	}
 
 	cameraNode_->LookAt(cameraRay_.origin_);
+}
+
+void ThirdPersonCamera::HandleMechanicRequest(StringHash eventType, VariantMap& eventData)
+{
+	String mechanicID = eventData[MechanicRequest::P_MECHANICID].GetString();
+	if (mechanicID == "CameraToggle")
+	{
+		if (!isEnabled_)
+		{
+			isEnabled_ = true;
+
+			cameraNode_->SetPosition(camOrigin_);
+			SubscribeToEvent(E_POSTUPDATE, HANDLER(ThirdPersonCamera, HandlePostUpdate));
+		}
+		else
+		{
+			isEnabled_ = false;
+
+			UnsubscribeFromEvent(E_POSTUPDATE);
+		}
+	}
 }

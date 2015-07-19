@@ -1,14 +1,13 @@
 /*
- * ThirdPersonCamera.h
+ * TopDownCamera.h
  *
- *  Created on: Jul 11, 2015
+ *  Created on: Jul 19, 2015
  *      Author: practicing01
  */
 
 #pragma once
 
 #include <Urho3D/Urho3D.h>
-#include <Urho3D/Graphics/AnimatedModel.h>
 
 #include <Urho3D/Core/Object.h>
 #include <Urho3D/Scene/LogicComponent.h>
@@ -18,31 +17,23 @@
 
 using namespace Urho3D;
 
-class ThirdPersonCamera : public LogicComponent
+class TopDownCamera : public LogicComponent
 {
-	OBJECT(ThirdPersonCamera);
+	OBJECT(TopDownCamera);
 public:
-	ThirdPersonCamera(Context* context, Urho3DPlayer* main);
-	~ThirdPersonCamera();
+	TopDownCamera(Context* context, Urho3DPlayer* main);
+	~TopDownCamera();
 	virtual void Start();
 	void HandlePostUpdate(StringHash eventType, VariantMap& eventData);
-	void HandleSetCamera(StringHash eventType, VariantMap& eventData);
 	void HandleSetClientModelNode(StringHash eventType, VariantMap& eventData);
+	void HandleSetCamera(StringHash eventType, VariantMap& eventData);
 	void HandleMechanicRequest(StringHash eventType, VariantMap& eventData);
 
 	Urho3DPlayer* main_;
-
-	SharedPtr<Scene> scene_;
-	SharedPtr<Node> cameraNode_;
-	SharedPtr<Node> modelNode_;
-
-    float rayDistance_;
-    float inderp_;
-    float remainingDist_;
-	Vector3 victoria_;
-	Vector3 vectoria_;
+	float distance_;
 	Vector3 camOrigin_;
 	BoundingBox beeBox_;
-	Ray cameraRay_;
+	SharedPtr<Node> cameraNode_;
+	SharedPtr<Node> modelNode_;
 	bool isEnabled_;
 };

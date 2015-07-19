@@ -58,7 +58,9 @@ void MechanicsHud::HandleRelease(StringHash eventType, VariantMap& eventData)
 
 	String mechanicID = ele->GetVar("mechanicID").GetString();
 
-	LOGERRORF("%s", mechanicID.CString());
+	VariantMap vm;
+	vm[MechanicRequest::P_MECHANICID] = mechanicID;
+	SendEvent(E_MECHANICREQUEST, vm);
 }
 
 void MechanicsHud::HandleGameModeRemoved(StringHash eventType, VariantMap& eventData)

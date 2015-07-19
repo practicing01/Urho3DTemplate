@@ -35,6 +35,9 @@
 #include "logicComponents/Gravity.h"
 #include "logicComponents/MoveByTouch.h"
 #include "logicComponents/RotateTo.h"
+#include "logicComponents/TopDownCamera.h"
+#include "logicComponents/Silence.h"
+#include "logicComponents/Teleport.h"
 
 DotsNetCrits::DotsNetCrits(Context* context, Urho3DPlayer* main, bool isServer) :
 	LogicComponent(context)
@@ -218,6 +221,8 @@ void DotsNetCrits::AttachLogicComponents(SharedPtr<Node> sceneNode)
 {
 	sceneNode->AddComponent(new ModelPlayer(context_, main_), 0, LOCAL);
 
+	sceneNode->AddComponent(new TopDownCamera(context_, main_), 0, LOCAL);
+
 	sceneNode->AddComponent(new ThirdPersonCamera(context_, main_), 0, LOCAL);
 
 	sceneNode->AddComponent(new Speed(context_, main_), 0, LOCAL);
@@ -227,6 +232,10 @@ void DotsNetCrits::AttachLogicComponents(SharedPtr<Node> sceneNode)
 	sceneNode->AddComponent(new MoveByTouch(context_, main_), 0, LOCAL);
 
 	sceneNode->AddComponent(new RotateTo(context_, main_), 0, LOCAL);
+
+	sceneNode->AddComponent(new Silence(context_, main_), 0, LOCAL);
+
+	sceneNode->AddComponent(new Teleport(context_, main_), 0, LOCAL);
 }
 
 void DotsNetCrits::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData)

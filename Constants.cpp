@@ -9,4 +9,3 @@
 
 const int GAMEMODEMSG_RESPAWNNODE = 0;
 const int GAMEMODEMSG_GETLC = 1;
-const int GAMEMODEMSG_SETLC = 2;

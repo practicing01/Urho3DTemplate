@@ -162,6 +162,21 @@ EVENT(E_GETLC, GetLc)
 	PARAM(P_CONNECTION, Connection);// connection pointer
 }
 
+EVENT(E_MECHANICREQUEST, MechanicRequest)
+{
+	PARAM(P_MECHANICID, MechanicID);// string
+}
+
+EVENT(E_GETCLIENTSILENCE, GetClientSilence)
+{
+	PARAM(P_NODE, Node);// node pointer
+}
+
+EVENT(E_SETCLIENTSILENCE, SetClientSilence)
+{
+	PARAM(P_NODE, Node);// node pointer
+	PARAM(P_SILENCE, Silence);// bool
+}
+
 extern const int GAMEMODEMSG_RESPAWNNODE;
 extern const int GAMEMODEMSG_GETLC;
-extern const int GAMEMODEMSG_SETLC;

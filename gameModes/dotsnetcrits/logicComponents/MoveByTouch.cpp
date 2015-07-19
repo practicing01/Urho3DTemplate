@@ -70,6 +70,89 @@ void MoveByTouch::Start()
 
 }
 
+void MoveByTouch::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
+{
+	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
+}
+
+void MoveByTouch::HandleSetCamera(StringHash eventType, VariantMap& eventData)
+{
+	Node* clientNode = (Node*)(eventData[SetClientCamera::P_NODE].GetPtr());
+
+	if (clientNode == node_)
+	{
+		cameraNode_ = (Node*)(eventData[SetClientCamera::P_CAMERANODE].GetPtr());
+
+		UnsubscribeFromEvent(E_SETCLIENTCAMERA);
+		SubscribeToEvent(E_SETCLIENTMODELNODE, HANDLER(MoveByTouch, HandleSetClientModelNode));
+
+		VariantMap vm;
+		vm[GetClientModelNode::P_NODE] = node_;
+		SendEvent(E_GETCLIENTMODELNODE, vm);
+
+	}
+}
+
+void MoveByTouch::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData)
+{
+	Node* clientNode = (Node*)(eventData[SetClientModelNode::P_NODE].GetPtr());
+
+	if (clientNode == node_)
+	{
+		modelNode_ = (Node*)(eventData[SetClientModelNode::P_MODELNODE].GetPtr());
+
+		beeBox_ = modelNode_->GetComponent<AnimatedModel>()->GetWorldBoundingBox();
+		radius_ = modelNode_->GetComponent<CollisionShape>()->GetSize().x_;
+		radius_ *= modelNode_->GetWorldScale().x_;
+
+		UnsubscribeFromEvent(E_SETCLIENTMODELNODE);
+		SubscribeToEvent(E_SETCLIENTID, HANDLER(MoveByTouch, HandleSetClientID));
+
+		VariantMap vm;
+		vm[GetClientID::P_NODE] = main_->GetRootNode(node_);
+		SendEvent(E_GETCLIENTID, vm);
+	}
+}
+
+void MoveByTouch::HandleSetClientID(StringHash eventType, VariantMap& eventData)
+{
+	Node* clientNode = (Node*)(eventData[SetClientID::P_NODE].GetPtr());
+
+	if (main_->GetSceneNode(clientNode) == node_)
+	{
+		clientID_ = eventData[SetClientID::P_CLIENTID].GetInt();
+
+		UnsubscribeFromEvent(E_SETCLIENTID);
+		SubscribeToEvent(E_SETCONNECTION, HANDLER(MoveByTouch, HandleSetConnection));
+
+		VariantMap vm;
+		vm[GetConnection::P_NODE] = main_->GetRootNode(node_);
+		SendEvent(E_GETCONNECTION, vm);
+
+	}
+}
+
+void MoveByTouch::HandleSetConnection(StringHash eventType, VariantMap& eventData)
+{
+	Node* clientNode = (Node*)(eventData[SetConnection::P_NODE].GetPtr());
+
+	if (main_->GetSceneNode(clientNode) == node_)
+	{
+		conn_ = (Connection*)(eventData[SetConnection::P_CONNECTION].GetPtr());
+
+		UnsubscribeFromEvent(E_SETCONNECTION);
+
+		SubscribeToEvent(modelNode_, E_NODECOLLISION, HANDLER(MoveByTouch, HandleNodeCollision));
+		SubscribeToEvent(E_LCMSG, HANDLER(MoveByTouch, HandleLCMSG));
+		SubscribeToEvent(E_GETLC, HANDLER(MoveByTouch, HandleGetLc));
+
+		if (main_->IsLocalClient(node_))
+		{
+			SubscribeToEvent(E_TOUCHEND, HANDLER(MoveByTouch, HandleTouchEnd));
+		}
+	}
+}
+
 void MoveByTouch::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
 {
 	if (main_->ui_->GetFocusElement() || touchSubscriberCount_)
@@ -116,45 +199,6 @@ void MoveByTouch::HandleTouchUnSubscribe(StringHash eventType, VariantMap& event
 	if (touchSubscriberCount_ < 0)
 	{
 		touchSubscriberCount_ = 0;
-	}
-}
-
-void MoveByTouch::HandleSetCamera(StringHash eventType, VariantMap& eventData)
-{
-	Node* clientNode = (Node*)(eventData[SetClientCamera::P_NODE].GetPtr());
-
-	if (clientNode == node_)
-	{
-		cameraNode_ = (Node*)(eventData[SetClientCamera::P_CAMERANODE].GetPtr());
-
-		UnsubscribeFromEvent(E_SETCLIENTCAMERA);
-		SubscribeToEvent(E_SETCLIENTMODELNODE, HANDLER(MoveByTouch, HandleSetClientModelNode));
-
-		VariantMap vm;
-		vm[GetClientModelNode::P_NODE] = node_;
-		SendEvent(E_GETCLIENTMODELNODE, vm);
-
-	}
-}
-
-void MoveByTouch::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData)
-{
-	Node* clientNode = (Node*)(eventData[SetClientModelNode::P_NODE].GetPtr());
-
-	if (clientNode == node_)
-	{
-		modelNode_ = (Node*)(eventData[SetClientModelNode::P_MODELNODE].GetPtr());
-
-		beeBox_ = modelNode_->GetComponent<AnimatedModel>()->GetWorldBoundingBox();
-		radius_ = modelNode_->GetComponent<CollisionShape>()->GetSize().x_;
-		radius_ *= modelNode_->GetWorldScale().x_;
-
-		UnsubscribeFromEvent(E_SETCLIENTMODELNODE);
-		SubscribeToEvent(E_SETCLIENTID, HANDLER(MoveByTouch, HandleSetClientID));
-
-		VariantMap vm;
-		vm[GetClientID::P_NODE] = main_->GetRootNode(node_);
-		SendEvent(E_GETCLIENTID, vm);
 	}
 }
 
@@ -355,45 +399,6 @@ void MoveByTouch::HandleNodeCollision(StringHash eventType, VariantMap& eventDat
     }
 }
 
-void MoveByTouch::HandleSetClientID(StringHash eventType, VariantMap& eventData)
-{
-	Node* clientNode = (Node*)(eventData[SetClientID::P_NODE].GetPtr());
-
-	if (main_->GetSceneNode(clientNode) == node_)
-	{
-		clientID_ = eventData[SetClientID::P_CLIENTID].GetInt();
-
-		UnsubscribeFromEvent(E_SETCLIENTID);
-		SubscribeToEvent(E_SETCONNECTION, HANDLER(MoveByTouch, HandleSetConnection));
-
-		VariantMap vm;
-		vm[GetConnection::P_NODE] = main_->GetRootNode(node_);
-		SendEvent(E_GETCONNECTION, vm);
-
-	}
-}
-
-void MoveByTouch::HandleSetConnection(StringHash eventType, VariantMap& eventData)
-{
-	Node* clientNode = (Node*)(eventData[SetConnection::P_NODE].GetPtr());
-
-	if (main_->GetSceneNode(clientNode) == node_)
-	{
-		conn_ = (Connection*)(eventData[SetConnection::P_CONNECTION].GetPtr());
-
-		UnsubscribeFromEvent(E_SETCONNECTION);
-
-		SubscribeToEvent(modelNode_, E_NODECOLLISION, HANDLER(MoveByTouch, HandleNodeCollision));
-		SubscribeToEvent(E_LCMSG, HANDLER(MoveByTouch, HandleLCMSG));
-		SubscribeToEvent(E_GETLC, HANDLER(MoveByTouch, HandleGetLc));
-
-		if (main_->IsLocalClient(node_))
-		{
-			SubscribeToEvent(E_TOUCHEND, HANDLER(MoveByTouch, HandleTouchEnd));
-		}
-	}
-}
-
 void MoveByTouch::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 {
 	const PODVector<unsigned char>& data = eventData[LcMsg::P_DATA].GetBuffer();
@@ -459,11 +464,6 @@ void MoveByTouch::HandleSetLagTime(StringHash eventType, VariantMap& eventData)
 
 		UnsubscribeFromEvent(E_SETLAGTIME);
 	}
-}
-
-void MoveByTouch::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
-{
-	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
 }
 
 void MoveByTouch::HandleGetLc(StringHash eventType, VariantMap& eventData)
