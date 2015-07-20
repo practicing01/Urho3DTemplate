@@ -39,6 +39,7 @@
 #include "logicComponents/Silence.h"
 #include "logicComponents/Teleport.h"
 #include "logicComponents/Sprint.h"
+#include "logicComponents/Snare.h"
 
 DotsNetCrits::DotsNetCrits(Context* context, Urho3DPlayer* main, bool isServer) :
 	LogicComponent(context)
@@ -239,6 +240,8 @@ void DotsNetCrits::AttachLogicComponents(SharedPtr<Node> sceneNode)
 	sceneNode->AddComponent(new Teleport(context_, main_), 0, LOCAL);
 
 	sceneNode->AddComponent(new Sprint(context_, main_), 0, LOCAL);
+
+	sceneNode->AddComponent(new Snare(context_, main_), 0, LOCAL);
 }
 
 void DotsNetCrits::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData)

@@ -231,13 +231,6 @@ void MoveByTouch::HandleSetGravity(StringHash eventType, VariantMap& eventData)
 		UnsubscribeFromEvent(E_SETCLIENTGRAVITY);
 
 		MoveTo(moveToVector_, clientSpeed_, clientSpeed_, clientGravity_, clientGravity_, true, true);
-
-		VariantMap vm;
-		vm[AnimateSceneNode::P_NODE] = node_;
-		vm[AnimateSceneNode::P_ANIMATION] = "run";
-		vm[AnimateSceneNode::P_LOOP] = true;
-		vm[AnimateSceneNode::P_LAYER] = 0;
-		SendEvent(E_ANIMATESCENENODE, vm);
 	}
 }
 
@@ -290,6 +283,13 @@ void MoveByTouch::FixedUpdate(float timeStep)
 
 void MoveByTouch::MoveTo(Vector3 dest, float speed, float speedRamp, float gravity, float gravityRamp, bool stopOnCompletion, bool sendToServer)
 {
+	VariantMap vm0;
+	vm0[AnimateSceneNode::P_NODE] = node_;
+	vm0[AnimateSceneNode::P_ANIMATION] = "run";
+	vm0[AnimateSceneNode::P_LOOP] = true;
+	vm0[AnimateSceneNode::P_LAYER] = 0;
+	SendEvent(E_ANIMATESCENENODE, vm0);
+
 	moveToSpeed_ = speed;
 	speedRamp_ = speedRamp;
 	gravity_ = gravity;
