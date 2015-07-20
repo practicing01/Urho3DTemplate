@@ -178,5 +178,45 @@ EVENT(E_SETCLIENTSILENCE, SetClientSilence)
 	PARAM(P_SILENCE, Silence);// bool
 }
 
+EVENT(E_GETSCENENODEBYMODELNODE, GetSceneNodeByModelNode)
+{
+	PARAM(P_NODE, Node);// node pointer
+}
+
+EVENT(E_SETSCENENODEBYMODELNODE, SetSceneNodeByModelNode)
+{
+	PARAM(P_MODELNODE, ModelNode);// node pointer
+	PARAM(P_SCENENODE, SceneNode);// node pointer
+}
+
+EVENT(E_GETSCENENODECLIENTID, GetSceneNodeClientID)
+{
+	PARAM(P_NODE, Node);// node pointer
+}
+
+EVENT(E_SETSCENENODECLIENTID, SetSceneNodeClientID)
+{
+	PARAM(P_NODE, Node);// node pointer
+	PARAM(P_CLIENTID, ClientID);// int
+}
+
+EVENT(E_GETMODELNODEBYSCENENODE, GetModelNodeBySceneNode)
+{
+	PARAM(P_NODE, Node);// node pointer
+}
+
+EVENT(E_SETMODELNODEBYSCENENODE, SetModelNodeBySceneNode)
+{
+	PARAM(P_SCENENODE, SceneNode);// node pointer
+	PARAM(P_MODELNODE, ModelNode);// node pointer
+}
+
+EVENT(E_MODIFYCLIENTSPEED, ModifyClientSpeed)
+{
+	PARAM(P_NODE, Node);// node pointer
+	PARAM(P_SPEED, Speed);// float
+	PARAM(P_SENDTOSERVER, SendToServer);// bool
+}
+
 extern const int GAMEMODEMSG_RESPAWNNODE;
 extern const int GAMEMODEMSG_GETLC;

@@ -49,6 +49,8 @@ void ModelPlayer::Start()
 	SubscribeToEvent(E_GETCLIENTCAMERA, HANDLER(ModelPlayer, HandleGetCamera));
 	SubscribeToEvent(E_GETCLIENTMODELNODE, HANDLER(ModelPlayer, HandleGetClientModelNode));
 	SubscribeToEvent(E_ANIMATESCENENODE, HANDLER(ModelPlayer, HandleAnimateSceneNode));
+	SubscribeToEvent(E_GETSCENENODEBYMODELNODE, HANDLER(ModelPlayer, HandleGetSceneNodeByModelNode));
+	SubscribeToEvent(E_GETMODELNODEBYSCENENODE, HANDLER(ModelPlayer, HandleGetModelNodeBySceneNode));
 }
 
 void ModelPlayer::RecursiveSetAnimation(Node* noed, String ani, bool loop, unsigned char layer)//todo check if animation exists, if not set default.
@@ -151,5 +153,31 @@ void ModelPlayer::HandleAnimateSceneNode(StringHash eventType, VariantMap& event
 		bool loop = eventData[AnimateSceneNode::P_LOOP].GetBool();
 		unsigned char layer = (unsigned char)(eventData[AnimateSceneNode::P_LAYER].GetUInt());
 		RecursiveSetAnimation(modelNode_, ani, loop, layer);
+	}
+}
+
+void ModelPlayer::HandleGetSceneNodeByModelNode(StringHash eventType, VariantMap& eventData)
+{
+	Node* modelNode = (Node*)(eventData[GetSceneNodeByModelNode::P_NODE].GetPtr());
+
+	if (modelNode == modelNode_)
+	{
+		VariantMap vm;
+		vm[SetSceneNodeByModelNode::P_MODELNODE] = modelNode;
+		vm[SetSceneNodeByModelNode::P_SCENENODE] = node_;
+		SendEvent(E_SETSCENENODEBYMODELNODE, vm);
+	}
+}
+
+void ModelPlayer::HandleGetModelNodeBySceneNode(StringHash eventType, VariantMap& eventData)
+{
+	Node* sceneNode = (Node*)(eventData[GetModelNodeBySceneNode::P_NODE].GetPtr());
+
+	if (sceneNode == node_)
+	{
+		VariantMap vm;
+		vm[SetModelNodeBySceneNode::P_SCENENODE] = sceneNode;
+		vm[SetModelNodeBySceneNode::P_MODELNODE] = modelNode_;
+		SendEvent(E_SETMODELNODEBYSCENENODE, vm);
 	}
 }

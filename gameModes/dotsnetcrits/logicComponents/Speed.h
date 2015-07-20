@@ -25,8 +25,23 @@ public:
 	~Speed();
 	virtual void Start();
 	void HandleGetSpeed(StringHash eventType, VariantMap& eventData);
+	void HandleSetIsServer(StringHash eventType, VariantMap& eventData);
+	void HandleSetClientID(StringHash eventType, VariantMap& eventData);
+	void HandleSetConnection(StringHash eventType, VariantMap& eventData);
+	void HandleLCMSG(StringHash eventType, VariantMap& eventData);
+	void HandleGetLc(StringHash eventType, VariantMap& eventData);
+	void HandleModifySpeed(StringHash eventType, VariantMap& eventData);
+	void ModifySpeed(float speedMod, bool sendToServer);
 
 	Urho3DPlayer* main_;
+
+	Network* network_;
+
+	VectorBuffer msg_;
+
+	bool isServer_;
+	int clientID_;
+	Connection* conn_;
 
 	float speed_;
 };

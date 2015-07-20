@@ -40,6 +40,7 @@ void ClientInfo::Start()
 	//SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(ClientInfo, HandleNetworkMessage));
 	SubscribeToEvent(E_GETCLIENTID, HANDLER(ClientInfo, HandleGetClientID));
 	SubscribeToEvent(E_GETCONNECTION, HANDLER(ClientInfo, HandleGetConnection));
+	SubscribeToEvent(E_GETSCENENODECLIENTID, HANDLER(ClientInfo, HandleGetSceneNodeClientID));
 }
 
 void ClientInfo::HandleClientSync(StringHash eventType, VariantMap& eventData)
@@ -107,5 +108,18 @@ void ClientInfo::HandleGetConnection(StringHash eventType, VariantMap& eventData
 		vm[SetConnection::P_NODE] = clientNode;
 		vm[SetConnection::P_CONNECTION] = connection_;
 		SendEvent(E_SETCONNECTION, vm);
+	}
+}
+
+void ClientInfo::HandleGetSceneNodeClientID(StringHash eventType, VariantMap& eventData)
+{
+	Node* clientNode = (Node*)(eventData[GetClientID::P_NODE].GetPtr());
+
+	if (main_->GetRootNode(clientNode) == node_)
+	{
+		VariantMap vm;
+		vm[SetSceneNodeClientID::P_NODE] = clientNode;
+		vm[SetSceneNodeClientID::P_CLIENTID] = clientID_;
+		SendEvent(E_SETSCENENODECLIENTID, vm);
 	}
 }

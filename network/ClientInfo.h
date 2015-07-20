@@ -28,6 +28,7 @@ public:
     void HandleNetworkMessage(StringHash eventType, VariantMap& eventData);
 	void HandleGetClientID(StringHash eventType, VariantMap& eventData);
 	void HandleGetConnection(StringHash eventType, VariantMap& eventData);
+	void HandleGetSceneNodeClientID(StringHash eventType, VariantMap& eventData);
 
 	Urho3DPlayer* main_;
 

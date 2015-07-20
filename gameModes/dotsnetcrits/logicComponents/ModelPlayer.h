@@ -32,6 +32,8 @@ public:
 	void HandleGetClientModelNode(StringHash eventType, VariantMap& eventData);
 	void HandleRespawnSceneNode(StringHash eventType, VariantMap& eventData);
 	void HandleAnimateSceneNode(StringHash eventType, VariantMap& eventData);
+	void HandleGetSceneNodeByModelNode(StringHash eventType, VariantMap& eventData);
+	void HandleGetModelNodeBySceneNode(StringHash eventType, VariantMap& eventData);
 
 	Urho3DPlayer* main_;
 
