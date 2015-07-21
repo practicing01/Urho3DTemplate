@@ -315,7 +315,8 @@ void Snare::StartSnare(int clientID, float timeRamp, bool sendToServer)
 
 	VariantMap vm1;
 	vm1[ModifyClientSpeed::P_NODE] = sceneNode_;
-	vm1[ModifyClientSpeed::P_SPEED] = -snare_;
+	vm1[ModifyClientSpeed::P_SPEED] = snare_;
+	vm1[ModifyClientSpeed::P_OPERATION] = -1;
 	vm1[ModifyClientSpeed::P_SENDTOSERVER] = sendToServer;
 	SendEvent(E_MODIFYCLIENTSPEED, vm1);
 
@@ -371,6 +372,7 @@ void Snare::HandleUpdate(StringHash eventType, VariantMap& eventData)
 			VariantMap vm1;
 			vm1[ModifyClientSpeed::P_NODE] = sceneNode_;
 			vm1[ModifyClientSpeed::P_SPEED] = snare_;
+			vm1[ModifyClientSpeed::P_OPERATION] = 1;
 			vm1[ModifyClientSpeed::P_SENDTOSERVER] = true;
 			SendEvent(E_MODIFYCLIENTSPEED, vm1);
 

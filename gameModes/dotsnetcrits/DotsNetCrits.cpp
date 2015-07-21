@@ -40,6 +40,9 @@
 #include "logicComponents/Teleport.h"
 #include "logicComponents/Sprint.h"
 #include "logicComponents/Snare.h"
+#include "logicComponents/Blind.h"
+#include "logicComponents/Melee.h"
+#include "logicComponents/Health.h"
 
 DotsNetCrits::DotsNetCrits(Context* context, Urho3DPlayer* main, bool isServer) :
 	LogicComponent(context)
@@ -242,6 +245,12 @@ void DotsNetCrits::AttachLogicComponents(SharedPtr<Node> sceneNode)
 	sceneNode->AddComponent(new Sprint(context_, main_), 0, LOCAL);
 
 	sceneNode->AddComponent(new Snare(context_, main_), 0, LOCAL);
+
+	sceneNode->AddComponent(new Blind(context_, main_), 0, LOCAL);
+
+	sceneNode->AddComponent(new Melee(context_, main_), 0, LOCAL);
+
+	sceneNode->AddComponent(new Health(context_, main_), 0, LOCAL);
 }
 
 void DotsNetCrits::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData)

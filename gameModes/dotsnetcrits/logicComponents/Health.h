@@ -1,7 +1,7 @@
 /*
- * Speed.h
+ * Health.h
  *
- *  Created on: Jul 13, 2015
+ *  Created on: Jul 21, 2015
  *      Author: practicing01
  */
 
@@ -17,21 +17,21 @@
 
 using namespace Urho3D;
 
-class Speed : public LogicComponent
+class Health : public LogicComponent
 {
-	OBJECT(Speed);
+	OBJECT(Health);
 public:
-	Speed(Context* context, Urho3DPlayer* main);
-	~Speed();
+	Health(Context* context, Urho3DPlayer* main);
+	~Health();
 	virtual void Start();
-	void HandleGetSpeed(StringHash eventType, VariantMap& eventData);
+	void HandleGetHealth(StringHash eventType, VariantMap& eventData);
 	void HandleSetIsServer(StringHash eventType, VariantMap& eventData);
 	void HandleSetClientID(StringHash eventType, VariantMap& eventData);
 	void HandleSetConnection(StringHash eventType, VariantMap& eventData);
 	void HandleLCMSG(StringHash eventType, VariantMap& eventData);
 	void HandleGetLc(StringHash eventType, VariantMap& eventData);
-	void HandleModifySpeed(StringHash eventType, VariantMap& eventData);
-	void ModifySpeed(float speedMod, char operation, bool sendToServer);
+	void HandleModifyHealth(StringHash eventType, VariantMap& eventData);
+	void ModifyHealth(int healthMod, char operation, bool sendToServer);
 
 	Urho3DPlayer* main_;
 
@@ -43,5 +43,5 @@ public:
 	int clientID_;
 	Connection* conn_;
 
-	float speed_;
+	int health_;
 };

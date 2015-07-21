@@ -1,7 +1,7 @@
 /*
- * Speed.cpp
+ * Health.cpp
  *
- *  Created on: Jul 13, 2015
+ *  Created on: Jul 21, 2015
  *      Author: practicing01
  */
 
@@ -28,36 +28,36 @@
 #include <Urho3D/Physics/PhysicsEvents.h>
 #include <Urho3D/Physics/PhysicsWorld.h>
 
-#include "Speed.h"
+#include "Health.h"
 #include "../../../network/NetworkConstants.h"
 #include "../../../Constants.h"
 
-Speed::Speed(Context* context, Urho3DPlayer* main) :
+Health::Health(Context* context, Urho3DPlayer* main) :
 	LogicComponent(context)
 {
 	main_ = main;
 	network_ = GetSubsystem<Network>();
-	speed_ = 10.0f;
+	health_ = 100;
 	isServer_ = false;
 }
 
-Speed::~Speed()
+Health::~Health()
 {
 }
 
-void Speed::Start()
+void Health::Start()
 {
-	SubscribeToEvent(E_GETCLIENTSPEED, HANDLER(Speed, HandleGetSpeed));
-	SubscribeToEvent(E_SETISSERVER, HANDLER(Speed, HandleSetIsServer));
-	SubscribeToEvent(E_MODIFYCLIENTSPEED, HANDLER(Speed, HandleModifySpeed));
-	SubscribeToEvent(E_SETCLIENTID, HANDLER(Speed, HandleSetClientID));
-	SubscribeToEvent(E_SETCONNECTION, HANDLER(Speed, HandleSetConnection));
+	SubscribeToEvent(E_GETCLIENTHEALTH, HANDLER(Health, HandleGetHealth));
+	SubscribeToEvent(E_SETISSERVER, HANDLER(Health, HandleSetIsServer));
+	SubscribeToEvent(E_MODIFYCLIENTHEALTH, HANDLER(Health, HandleModifyHealth));
+	SubscribeToEvent(E_SETCLIENTID, HANDLER(Health, HandleSetClientID));
+	SubscribeToEvent(E_SETCONNECTION, HANDLER(Health, HandleSetConnection));
 
 	VariantMap vm0;
 	SendEvent(E_GETISSERVER, vm0);
 }
 
-void Speed::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
+void Health::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 {
 	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
 
@@ -66,7 +66,7 @@ void Speed::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 	SendEvent(E_GETCLIENTID, vm);
 }
 
-void Speed::HandleSetClientID(StringHash eventType, VariantMap& eventData)
+void Health::HandleSetClientID(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetClientID::P_NODE].GetPtr());
 
@@ -81,7 +81,7 @@ void Speed::HandleSetClientID(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Speed::HandleSetConnection(StringHash eventType, VariantMap& eventData)
+void Health::HandleSetConnection(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetConnection::P_NODE].GetPtr());
 
@@ -89,86 +89,88 @@ void Speed::HandleSetConnection(StringHash eventType, VariantMap& eventData)
 	{
 		conn_ = (Connection*)(eventData[SetConnection::P_CONNECTION].GetPtr());
 
-		SubscribeToEvent(E_LCMSG, HANDLER(Speed, HandleLCMSG));
-		SubscribeToEvent(E_GETLC, HANDLER(Speed, HandleGetLc));
+		SubscribeToEvent(E_LCMSG, HANDLER(Health, HandleLCMSG));
+		SubscribeToEvent(E_GETLC, HANDLER(Health, HandleGetLc));
 	}
 }
 
-void Speed::HandleGetSpeed(StringHash eventType, VariantMap& eventData)
+void Health::HandleGetHealth(StringHash eventType, VariantMap& eventData)
 {
-	Node* clientNode = (Node*)(eventData[GetClientSpeed::P_NODE].GetPtr());
+	Node* clientNode = (Node*)(eventData[GetClientHealth::P_NODE].GetPtr());
 
 	if (clientNode == node_)
 	{
 		VariantMap vm;
-		vm[SetClientSpeed::P_NODE] = clientNode;
-		vm[SetClientSpeed::P_SPEED] = speed_;
-		SendEvent(E_SETCLIENTSPEED, vm);
+		vm[SetClientHealth::P_NODE] = clientNode;
+		vm[SetClientHealth::P_HEALTH] = health_;
+		SendEvent(E_SETCLIENTHEALTH, vm);
 	}
 }
 
-void Speed::HandleModifySpeed(StringHash eventType, VariantMap& eventData)
+void Health::HandleModifyHealth(StringHash eventType, VariantMap& eventData)
 {
-	Node* clientNode = (Node*)(eventData[ModifyClientSpeed::P_NODE].GetPtr());
+	Node* clientNode = (Node*)(eventData[ModifyClientHealth::P_NODE].GetPtr());
 
 	if (clientNode == node_)
 	{
-		float speedMod = eventData[ModifyClientSpeed::P_SPEED].GetFloat();
-		char operation = eventData[ModifyClientSpeed::P_OPERATION].GetInt();
-		bool sendToServer = eventData[ModifyClientSpeed::P_SENDTOSERVER].GetBool();
+		int healthMod = eventData[ModifyClientHealth::P_HEALTH].GetInt();
+		char operation = eventData[ModifyClientHealth::P_OPERATION].GetInt();
+		bool sendToServer = eventData[ModifyClientHealth::P_SENDTOSERVER].GetBool();
 
-		ModifySpeed(speedMod, operation, sendToServer);
+		ModifyHealth(healthMod, operation, sendToServer);
 	}
 }
 
-void Speed::ModifySpeed(float speedMod, char operation, bool sendToServer)
+void Health::ModifyHealth(int healthMod, char operation, bool sendToServer)
 {
 	if (operation == 0)
 	{
-		speed_ = speedMod;
+		health_ = healthMod;
 	}
 	else if (operation == 1)
 	{
-		speed_ += speedMod;
+		health_ += healthMod;
 	}
 	else if (operation == -1)
 	{
-		speed_ -= speedMod;
+		health_ -= healthMod;
 	}
+
+	//todo handle respawn with d&c server listening to health mods
 
 	if (sendToServer)
 	{
 		msg_.Clear();
 		msg_.WriteInt(clientID_);
-		msg_.WriteString("Speed");
-		msg_.WriteFloat(speedMod);
+		msg_.WriteString("Health");
+		msg_.WriteInt(healthMod);
 		msg_.WriteInt(operation);
 		network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
 	}
 }
 
-void Speed::HandleLCMSG(StringHash eventType, VariantMap& eventData)
+void Health::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 {
 	const PODVector<unsigned char>& data = eventData[LcMsg::P_DATA].GetBuffer();
 	MemoryBuffer msg(data);
 	int clientID = msg.ReadInt();
 	String lc = msg.ReadString();
 
-	if (lc == "Speed")
+	if (lc == "Health")
 	{
 		if (clientID_ == clientID)
 		{
-			float speedMod = msg.ReadFloat();
+			int healthMod = msg.ReadInt();
 			char operation = msg.ReadInt();
 
-			ModifySpeed(speedMod, operation, false);
+			ModifyHealth(healthMod, operation, false);
 
 			if (isServer_)
 			{
 				msg_.Clear();
 				msg_.WriteInt(clientID_);
-				msg_.WriteString("Speed");
-				msg_.WriteFloat(speedMod);
+				msg_.WriteString("Health");
+				msg_.WriteInt(healthMod);
 				msg_.WriteInt(operation);
 
 				VariantMap vm0;
@@ -180,7 +182,7 @@ void Speed::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Speed::HandleGetLc(StringHash eventType, VariantMap& eventData)
+void Health::HandleGetLc(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[GetLc::P_NODE].GetPtr());
 
@@ -190,8 +192,8 @@ void Speed::HandleGetLc(StringHash eventType, VariantMap& eventData)
 
 		msg_.Clear();
 		msg_.WriteInt(clientID_);
-		msg_.WriteString("Speed");
-		msg_.WriteFloat(speed_);
+		msg_.WriteString("Health");
+		msg_.WriteInt(health_);
 		msg_.WriteInt(0);
 		conn->SendMessage(MSG_LCMSG, true, true, msg_);
 	}

@@ -215,6 +215,37 @@ EVENT(E_MODIFYCLIENTSPEED, ModifyClientSpeed)
 {
 	PARAM(P_NODE, Node);// node pointer
 	PARAM(P_SPEED, Speed);// float
+	PARAM(P_OPERATION, Operation);// char
+	PARAM(P_SENDTOSERVER, SendToServer);// bool
+}
+
+EVENT(E_GETCLIENTBLIND, GetClientBlind)
+{
+	PARAM(P_NODE, Node);// node pointer
+}
+
+EVENT(E_SETCLIENTBLIND, SetClientBlind)
+{
+	PARAM(P_NODE, Node);// node pointer
+	PARAM(P_BLIND, Blind);// bool
+}
+
+EVENT(E_GETCLIENTHEALTH, GetClientHealth)
+{
+	PARAM(P_NODE, Node);// node pointer
+}
+
+EVENT(E_SETCLIENTHEALTH, SetClientHealth)
+{
+	PARAM(P_NODE, Node);// node pointer
+	PARAM(P_HEALTH, Health);// float
+}
+
+EVENT(E_MODIFYCLIENTHEALTH, ModifyClientHealth)
+{
+	PARAM(P_NODE, Node);// node pointer
+	PARAM(P_HEALTH, Health);// int
+	PARAM(P_OPERATION, Operation);// char
 	PARAM(P_SENDTOSERVER, SendToServer);// bool
 }
 
