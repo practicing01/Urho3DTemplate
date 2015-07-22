@@ -44,6 +44,9 @@
 #include "logicComponents/Melee.h"
 #include "logicComponents/Health.h"
 #include "logicComponents/Mute.h"
+#include "logicComponents/Armor.h"
+#include "logicComponents/Shield.h"
+#include "logicComponents/DPSHeal.h"
 
 DotsNetCrits::DotsNetCrits(Context* context, Urho3DPlayer* main, bool isServer) :
 	LogicComponent(context)
@@ -255,6 +258,12 @@ void DotsNetCrits::AttachLogicComponents(SharedPtr<Node> sceneNode)
 	sceneNode->AddComponent(new Health(context_, main_), 0, LOCAL);
 
 	sceneNode->AddComponent(new Mute(context_, main_), 0, LOCAL);
+
+	sceneNode->AddComponent(new Armor(context_, main_), 0, LOCAL);
+
+	sceneNode->AddComponent(new Shield(context_, main_), 0, LOCAL);
+
+	sceneNode->AddComponent(new DPSHeal(context_, main_), 0, LOCAL);
 }
 
 void DotsNetCrits::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData)

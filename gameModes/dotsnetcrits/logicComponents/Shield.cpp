@@ -1,7 +1,7 @@
 /*
- * Snare.cpp
+ * Shield.cpp
  *
- *  Created on: Jul 20, 2015
+ *  Created on: Jul 22, 2015
  *      Author: practicing01
  */
 
@@ -32,11 +32,11 @@
 #include <Urho3D/Audio/Sound.h>
 #include <Urho3D/Audio/SoundSource3D.h>
 
-#include "Snare.h"
+#include "Shield.h"
 #include "../../../network/NetworkConstants.h"
 #include "../../../Constants.h"
 
-Snare::Snare(Context* context, Urho3DPlayer* main) :
+Shield::Shield(Context* context, Urho3DPlayer* main) :
 	LogicComponent(context)
 {
 	main_ = main;
@@ -47,14 +47,14 @@ Snare::Snare(Context* context, Urho3DPlayer* main) :
 	isServer_ = false;
 	clientExecuting_ = false;
 	cooldown_ = 10.0f;
-	snared_ = false;
-	snareDuration_ = 5.0f;
-	snare_ = 10.0f;
+	shielded_ = false;
+	shieldDuration_ = 5.0f;
+	shield_ = 10;
 	SetUpdateEventMask(USE_UPDATE);
-	//SubscribeToEvent(E_CLEANSESTATUS, HANDLER(Snare, HandleCleanseStatus));
+	//SubscribeToEvent(E_CLEANSESTATUS, HANDLER(Shield, HandleCleanseStatus));
 }
 
-Snare::~Snare()
+Shield::~Shield()
 {
 	if (clientExecuting_)
 	{
@@ -63,37 +63,37 @@ Snare::~Snare()
 	}
 }
 
-void Snare::Start()
+void Shield::Start()
 {
 	scene_ = node_->GetScene();
 
 	particleEndNode_ = scene_->CreateChild(0,LOCAL);
 	emitterEndFX_ = particleEndNode_->CreateComponent<ParticleEmitter>(LOCAL);
-	emitterEndFX_->SetEffect(main_->cache_->GetResource<ParticleEffect>("Particle/snare.xml"));
+	emitterEndFX_->SetEffect(main_->cache_->GetResource<ParticleEffect>("Particle/shield.xml"));
 	particleEndNode_->SetWorldScale(Vector3::ONE * 500.0f);
 	emitterEndFX_->SetEmitting(false);
 	emitterEndFX_->SetViewMask(1);
 
 	particleEndNode_->CreateComponent<SoundSource3D>(LOCAL);
 
-	SubscribeToEvent(E_SETISSERVER, HANDLER(Snare, HandleSetIsServer));
+	SubscribeToEvent(E_SETISSERVER, HANDLER(Shield, HandleSetIsServer));
 
 	VariantMap vm0;
 	SendEvent(E_GETISSERVER, vm0);
 
-	SubscribeToEvent(E_SETCLIENTCAMERA, HANDLER(Snare, HandleSetCamera));
+	SubscribeToEvent(E_SETCLIENTCAMERA, HANDLER(Shield, HandleSetCamera));
 
 	VariantMap vm;
 	vm[GetClientCamera::P_NODE] = node_;
 	SendEvent(E_GETCLIENTCAMERA, vm);
 }
 
-void Snare::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
+void Shield::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 {
 	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
 }
 
-void Snare::HandleSetCamera(StringHash eventType, VariantMap& eventData)
+void Shield::HandleSetCamera(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetClientCamera::P_NODE].GetPtr());
 
@@ -102,7 +102,7 @@ void Snare::HandleSetCamera(StringHash eventType, VariantMap& eventData)
 		cameraNode_ = (Node*)(eventData[SetClientCamera::P_CAMERANODE].GetPtr());
 
 		UnsubscribeFromEvent(E_SETCLIENTCAMERA);
-		SubscribeToEvent(E_SETCLIENTMODELNODE, HANDLER(Snare, HandleSetClientModelNode));
+		SubscribeToEvent(E_SETCLIENTMODELNODE, HANDLER(Shield, HandleSetClientModelNode));
 
 		VariantMap vm;
 		vm[GetClientModelNode::P_NODE] = node_;
@@ -110,7 +110,7 @@ void Snare::HandleSetCamera(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Snare::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData)
+void Shield::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetClientModelNode::P_NODE].GetPtr());
 
@@ -121,7 +121,7 @@ void Snare::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData
 		beeBox_ = modelNode_->GetComponent<AnimatedModel>()->GetWorldBoundingBox();
 
 		UnsubscribeFromEvent(E_SETCLIENTMODELNODE);
-		SubscribeToEvent(E_SETCLIENTID, HANDLER(Snare, HandleSetClientID));
+		SubscribeToEvent(E_SETCLIENTID, HANDLER(Shield, HandleSetClientID));
 
 		VariantMap vm;
 		vm[GetClientID::P_NODE] = main_->GetRootNode(node_);
@@ -129,7 +129,7 @@ void Snare::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData
 	}
 }
 
-void Snare::HandleSetClientID(StringHash eventType, VariantMap& eventData)
+void Shield::HandleSetClientID(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetClientID::P_NODE].GetPtr());
 
@@ -138,7 +138,7 @@ void Snare::HandleSetClientID(StringHash eventType, VariantMap& eventData)
 		clientID_ = eventData[SetClientID::P_CLIENTID].GetInt();
 
 		UnsubscribeFromEvent(E_SETCLIENTID);
-		SubscribeToEvent(E_SETCONNECTION, HANDLER(Snare, HandleSetConnection));
+		SubscribeToEvent(E_SETCONNECTION, HANDLER(Shield, HandleSetConnection));
 
 		VariantMap vm;
 		vm[GetConnection::P_NODE] = main_->GetRootNode(node_);
@@ -147,7 +147,7 @@ void Snare::HandleSetClientID(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Snare::HandleSetConnection(StringHash eventType, VariantMap& eventData)
+void Shield::HandleSetConnection(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetConnection::P_NODE].GetPtr());
 
@@ -157,23 +157,23 @@ void Snare::HandleSetConnection(StringHash eventType, VariantMap& eventData)
 
 		UnsubscribeFromEvent(E_SETCONNECTION);
 
-		SubscribeToEvent(E_LCMSG, HANDLER(Snare, HandleLCMSG));
-		SubscribeToEvent(E_GETLC, HANDLER(Snare, HandleGetLc));
+		SubscribeToEvent(E_LCMSG, HANDLER(Shield, HandleLCMSG));
+		SubscribeToEvent(E_GETLC, HANDLER(Shield, HandleGetLc));
 
 		if (main_->IsLocalClient(node_))
 		{
-			SubscribeToEvent(E_MECHANICREQUEST, HANDLER(Snare, HandleMechanicRequest));
+			SubscribeToEvent(E_MECHANICREQUEST, HANDLER(Shield, HandleMechanicRequest));
 		}
 	}
 }
 
-void Snare::HandleMechanicRequest(StringHash eventType, VariantMap& eventData)
+void Shield::HandleMechanicRequest(StringHash eventType, VariantMap& eventData)
 {
 	String mechanicID = eventData[MechanicRequest::P_MECHANICID].GetString();
 
-	if (mechanicID == "Snare")
+	if (mechanicID == "Shield")
 	{
-		SubscribeToEvent(E_SETCLIENTSILENCE, HANDLER(Snare, HandleSetSilence));
+		SubscribeToEvent(E_SETCLIENTSILENCE, HANDLER(Shield, HandleSetSilence));
 
 		VariantMap vm;
 		vm[GetClientSilence::P_NODE] = node_;
@@ -181,7 +181,7 @@ void Snare::HandleMechanicRequest(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Snare::HandleSetSilence(StringHash eventType, VariantMap& eventData)
+void Shield::HandleSetSilence(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetClientSilence::P_NODE].GetPtr());
 
@@ -199,12 +199,12 @@ void Snare::HandleSetSilence(StringHash eventType, VariantMap& eventData)
 			VariantMap vm;
 			SendEvent(E_TOUCHSUBSCRIBE, vm);
 
-			SubscribeToEvent(E_TOUCHEND, HANDLER(Snare, HandleTouchEnd));
+			SubscribeToEvent(E_TOUCHEND, HANDLER(Shield, HandleTouchEnd));
 		}
 	}
 }
 
-void Snare::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
+void Shield::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
 {
 	if (main_->ui_->GetFocusElement())
 	{
@@ -226,22 +226,22 @@ void Snare::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
 
 	scene_->GetComponent<PhysicsWorld>()->RaycastSingle(raeResult_, cameraRay, 1000.0f, 2);//todo define masks.
 
-	targetClientID = -1;
-	targetModelNode = NULL;
+	targetClientID_ = -1;
+	targetModelNode_ = NULL;
 	targetSceneNode_ = NULL;
 
 	if (raeResult_.body_)
 	{
-		targetModelNode = raeResult_.body_->GetNode();
+		targetModelNode_ = raeResult_.body_->GetNode();
 
-		SubscribeToEvent(E_SETSCENENODEBYMODELNODE, HANDLER(Snare, HandleSetSceneNodeByModelNode));
+		SubscribeToEvent(E_SETSCENENODEBYMODELNODE, HANDLER(Shield, HandleSetSceneNodeByModelNode));
 
 		VariantMap vm;
-		vm[GetSceneNodeByModelNode::P_NODE] = targetModelNode;
+		vm[GetSceneNodeByModelNode::P_NODE] = targetModelNode_;
 		SendEvent(E_GETSCENENODEBYMODELNODE, vm);
 
 		UnsubscribeFromEvent(E_SETSCENENODEBYMODELNODE);
-		SubscribeToEvent(E_SETSCENENODECLIENTID, HANDLER(Snare, HandleSetSceneNodeClientID));
+		SubscribeToEvent(E_SETSCENENODECLIENTID, HANDLER(Shield, HandleSetSceneNodeClientID));
 
 		VariantMap vm0;
 		vm0[GetSceneNodeClientID::P_NODE] = targetSceneNode_;
@@ -249,7 +249,7 @@ void Snare::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
 
 		UnsubscribeFromEvent(E_SETSCENENODECLIENTID);
 
-		StartSnare(targetClientID, 0.0f, true);
+		StartShield(targetClientID_, 0.0f, true);
 	}
 	else
 	{
@@ -258,31 +258,31 @@ void Snare::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Snare::HandleSetSceneNodeByModelNode(StringHash eventType, VariantMap& eventData)
+void Shield::HandleSetSceneNodeByModelNode(StringHash eventType, VariantMap& eventData)
 {
 	Node* modelNode = (Node*)(eventData[SetSceneNodeByModelNode::P_MODELNODE].GetPtr());
 
-	if (modelNode == targetModelNode)
+	if (modelNode == targetModelNode_)
 	{
 		targetSceneNode_ = (Node*)(eventData[SetSceneNodeByModelNode::P_SCENENODE].GetPtr());
 	}
 }
 
-void Snare::HandleSetSceneNodeClientID(StringHash eventType, VariantMap& eventData)
+void Shield::HandleSetSceneNodeClientID(StringHash eventType, VariantMap& eventData)
 {
 	Node* sceneNode = (Node*)(eventData[SetSceneNodeClientID::P_NODE].GetPtr());
 
 	if (sceneNode == targetSceneNode_)
 	{
-		targetClientID = eventData[SetSceneNodeClientID::P_CLIENTID].GetInt();
+		targetClientID_ = eventData[SetSceneNodeClientID::P_CLIENTID].GetInt();
 	}
 }
 
-void Snare::StartSnare(int clientID, float timeRamp, bool sendToServer)
+void Shield::StartShield(int clientID, float timeRamp, bool sendToServer)
 {
 	targetSceneNode_ = main_->GetSceneNode(clientID);
 
-	SubscribeToEvent(E_SETMODELNODEBYSCENENODE, HANDLER(Snare, HandleSetModelNodeBySceneNode));
+	SubscribeToEvent(E_SETMODELNODEBYSCENENODE, HANDLER(Shield, HandleSetModelNodeBySceneNode));
 
 	VariantMap vm0;
 	vm0[GetModelNodeBySceneNode::P_NODE] = targetSceneNode_;
@@ -290,20 +290,21 @@ void Snare::StartSnare(int clientID, float timeRamp, bool sendToServer)
 
 	if (!isServer_)
 	{
-		targetModelNode->AddChild(particleEndNode_);
-		victoria_ = targetModelNode->GetPosition();
+		targetModelNode_->AddChild(particleEndNode_);
+		victoria_ = targetModelNode_->GetPosition();
 		victoria_.y_ += beeBox_.Size().y_;
 		particleEndNode_->SetWorldPosition(victoria_);
 		emitterEndFX_->SetEmitting(true);
-		particleEndNode_->GetComponent<SoundSource3D>()->Play(main_->cache_->GetResource<Sound>("Sounds/snare/snare.ogg"));
+		particleEndNode_->GetComponent<SoundSource3D>()->Play(main_->cache_->GetResource<Sound>("Sounds/shield/shield.ogg"));
 
 	}
 
-	snared_ = true;
-	snareElapsedTime_ = timeRamp;
+	shielded_ = true;
+	shieldElapsedTime_ = timeRamp;
 
 	clientExecuting_ = true;
 	elapsedTime_ = timeRamp;
+	SubscribeToEvent(E_UPDATE, HANDLER(Shield, HandleUpdate));
 
 	VariantMap vm;
 	vm[AnimateSceneNode::P_NODE] = node_;
@@ -313,38 +314,36 @@ void Snare::StartSnare(int clientID, float timeRamp, bool sendToServer)
 	SendEvent(E_ANIMATESCENENODE, vm);
 
 	VariantMap vm1;
-	vm1[ModifyClientSpeed::P_NODE] = targetSceneNode_;
-	vm1[ModifyClientSpeed::P_SPEED] = snare_;
-	vm1[ModifyClientSpeed::P_OPERATION] = -1;
-	vm1[ModifyClientSpeed::P_SENDTOSERVER] = false;
-	SendEvent(E_MODIFYCLIENTSPEED, vm1);
+	vm1[ModifyClientArmor::P_NODE] = targetSceneNode_;
+	vm1[ModifyClientArmor::P_ARMOR] = shield_;
+	vm1[ModifyClientArmor::P_OPERATION] = 1;
+	vm1[ModifyClientArmor::P_SENDTOSERVER] = false;
+	SendEvent(E_MODIFYCLIENTARMOR, vm1);
 
 	if (sendToServer)
 	{
 		msg_.Clear();
 		msg_.WriteInt(clientID_);
-		msg_.WriteString("Snare");
-		msg_.WriteInt(targetClientID);
+		msg_.WriteString("Shield");
+		msg_.WriteInt(targetClientID_);
 		msg_.WriteFloat(timeRamp);
 		network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
 	}
-
-	SubscribeToEvent(E_UPDATE, HANDLER(Snare, HandleUpdate));
 }
 
-void Snare::HandleSetModelNodeBySceneNode(StringHash eventType, VariantMap& eventData)
+void Shield::HandleSetModelNodeBySceneNode(StringHash eventType, VariantMap& eventData)
 {
 	Node* sceneNode = (Node*)(eventData[SetModelNodeBySceneNode::P_SCENENODE].GetPtr());
 
 	if (sceneNode == targetSceneNode_)
 	{
-		targetModelNode = (Node*)(eventData[SetModelNodeBySceneNode::P_MODELNODE].GetPtr());
+		targetModelNode_ = (Node*)(eventData[SetModelNodeBySceneNode::P_MODELNODE].GetPtr());
 
 		UnsubscribeFromEvent(E_SETMODELNODEBYSCENENODE);
 	}
 }
 
-void Snare::HandleUpdate(StringHash eventType, VariantMap& eventData)
+void Shield::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
 	float timeStep = eventData[Update::P_TIMESTEP].GetFloat();
 
@@ -354,38 +353,38 @@ void Snare::HandleUpdate(StringHash eventType, VariantMap& eventData)
 		clientExecuting_ = false;
 	}
 
-	if (snared_)
+	if (shielded_)
 	{
-		snareElapsedTime_ += timeStep;
-		if (snareElapsedTime_ >= snareDuration_)
+		shieldElapsedTime_ += timeStep;
+		if (shieldElapsedTime_ >= shieldDuration_)
 		{
-			snared_ = false;
+			shielded_ = false;
 //todo the following will not work if the cooldown is less than the duration.
 //need to store for each client in vectors
-			SubscribeToEvent(E_SETSCENENODEBYMODELNODE, HANDLER(Snare, HandleSetSceneNodeByModelNode));
+			SubscribeToEvent(E_SETSCENENODEBYMODELNODE, HANDLER(Shield, HandleSetSceneNodeByModelNode));
 
 			VariantMap vm;
-			vm[GetSceneNodeByModelNode::P_NODE] = targetModelNode;
+			vm[GetSceneNodeByModelNode::P_NODE] = targetModelNode_;
 			SendEvent(E_GETSCENENODEBYMODELNODE, vm);
 
 			UnsubscribeFromEvent(E_SETSCENENODEBYMODELNODE);
 
 			VariantMap vm1;
-			vm1[ModifyClientSpeed::P_NODE] = targetSceneNode_;
-			vm1[ModifyClientSpeed::P_SPEED] = snare_;
-			vm1[ModifyClientSpeed::P_OPERATION] = 1;
-			vm1[ModifyClientSpeed::P_SENDTOSERVER] = false;
-			SendEvent(E_MODIFYCLIENTSPEED, vm1);
+			vm1[ModifyClientArmor::P_NODE] = targetSceneNode_;
+			vm1[ModifyClientArmor::P_ARMOR] = shield_;
+			vm1[ModifyClientArmor::P_OPERATION] = -1;
+			vm1[ModifyClientArmor::P_SENDTOSERVER] = false;
+			SendEvent(E_MODIFYCLIENTARMOR, vm1);
 
 			if (!isServer_)
 			{
-				targetModelNode->RemoveChild(particleEndNode_);
+				targetModelNode_->RemoveChild(particleEndNode_);
 				emitterEndFX_->SetEmitting(false);
 			}
 		}
 	}
 
-	if (cooldown_ > snareDuration_)
+	if (cooldown_ > shieldDuration_)
 	{
 		if (elapsedTime_ >= cooldown_)
 		{
@@ -394,28 +393,28 @@ void Snare::HandleUpdate(StringHash eventType, VariantMap& eventData)
 	}
 	else
 	{
-		if (snareElapsedTime_ >= snareDuration_)
+		if (shieldElapsedTime_ >= shieldDuration_)
 		{
 			UnsubscribeFromEvent(E_UPDATE);
 		}
 	}
 }
 
-void Snare::HandleLCMSG(StringHash eventType, VariantMap& eventData)
+void Shield::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 {
 	const PODVector<unsigned char>& data = eventData[LcMsg::P_DATA].GetBuffer();
 	MemoryBuffer msg(data);
 	int clientID = msg.ReadInt();
 	String lc = msg.ReadString();
 
-	if (lc == "Snare")
+	if (lc == "Shield")
 	{
 		if (clientID_ == clientID)
 		{
-			targetClientID = msg.ReadInt();
+			targetClientID_ = msg.ReadInt();
 			float timeRamp = msg.ReadFloat();
 
-			SubscribeToEvent(E_SETLAGTIME, HANDLER(Snare, HandleSetLagTime));
+			SubscribeToEvent(E_SETLAGTIME, HANDLER(Shield, HandleSetLagTime));
 
 			VariantMap vm;
 			vm[GetLagTime::P_CONNECTION] = conn_;
@@ -423,14 +422,14 @@ void Snare::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 
 			timeRamp += lagTime_;
 
-			StartSnare(targetClientID, timeRamp, false);
+			StartShield(targetClientID_, timeRamp, false);
 
 			if (isServer_)
 			{
 				msg_.Clear();
 				msg_.WriteInt(clientID_);
-				msg_.WriteString("Snare");
-				msg_.WriteInt(targetClientID);
+				msg_.WriteString("Shield");
+				msg_.WriteInt(targetClientID_);
 				msg_.WriteFloat(timeRamp);
 
 				VariantMap vm0;
@@ -442,7 +441,7 @@ void Snare::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Snare::HandleSetLagTime(StringHash eventType, VariantMap& eventData)
+void Shield::HandleSetLagTime(StringHash eventType, VariantMap& eventData)
 {
 	Connection* sender = (Connection*)(eventData[SetLagTime::P_CONNECTION].GetPtr());
 	if (sender == conn_)
@@ -453,20 +452,20 @@ void Snare::HandleSetLagTime(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Snare::HandleGetLc(StringHash eventType, VariantMap& eventData)
+void Shield::HandleGetLc(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[GetLc::P_NODE].GetPtr());
 
 	if (clientNode == node_)
 	{
-		if (!snared_)
+		if (!shielded_)
 		{
 			return;
 		}
 
 		Connection* conn = (Connection*)(eventData[GetLc::P_CONNECTION].GetPtr());
 
-		SubscribeToEvent(E_SETLAGTIME, HANDLER(Snare, HandleSetLagTime));
+		SubscribeToEvent(E_SETLAGTIME, HANDLER(Shield, HandleSetLagTime));
 
 		VariantMap vm;
 		vm[GetLagTime::P_CONNECTION] = conn;
@@ -476,8 +475,8 @@ void Snare::HandleGetLc(StringHash eventType, VariantMap& eventData)
 
 		msg_.Clear();
 		msg_.WriteInt(clientID_);
-		msg_.WriteString("Snare");
-		msg_.WriteInt(targetClientID);
+		msg_.WriteString("Shield");
+		msg_.WriteInt(targetClientID_);
 		msg_.WriteFloat(timeRamp);
 		conn->SendMessage(MSG_LCMSG, true, true, msg_);
 	}

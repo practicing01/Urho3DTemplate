@@ -262,5 +262,31 @@ EVENT(E_MODIFYCLIENTSILENCE, ModifyClientSilence)
 	PARAM(P_SENDTOSERVER, SendToServer);// bool
 }
 
+EVENT(E_MODIFYCLIENTBLIND, ModifyClientBlind)
+{
+	PARAM(P_NODE, Node);// node pointer
+	PARAM(P_STATE, State);// bool
+	PARAM(P_SENDTOSERVER, SendToServer);// bool
+}
+
+EVENT(E_GETCLIENTARMOR, GetClientArmor)
+{
+	PARAM(P_NODE, Node);// node pointer
+}
+
+EVENT(E_SETCLIENTARMOR, SetClientArmor)
+{
+	PARAM(P_NODE, Node);// node pointer
+	PARAM(P_ARMOR, Armor);// int
+}
+
+EVENT(E_MODIFYCLIENTARMOR, ModifyClientArmor)
+{
+	PARAM(P_NODE, Node);// node pointer
+	PARAM(P_ARMOR, Armor);// int
+	PARAM(P_OPERATION, Operation);// char
+	PARAM(P_SENDTOSERVER, SendToServer);// bool
+}
+
 extern const int GAMEMODEMSG_RESPAWNNODE;
 extern const int GAMEMODEMSG_GETLC;

@@ -226,30 +226,30 @@ void Sprint::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
 
 	scene_->GetComponent<PhysicsWorld>()->RaycastSingle(raeResult_, cameraRay, 1000.0f, 2);//todo define masks.
 
-	sceneNodeClientID_ = -1;
-	sceneNodeModelNode_ = NULL;
-	sceneNode_ = NULL;
+	targetClientID_ = -1;
+	targetModelNode_ = NULL;
+	targetSceneNode_ = NULL;
 
 	if (raeResult_.body_)
 	{
-		sceneNodeModelNode_ = raeResult_.body_->GetNode();
+		targetModelNode_ = raeResult_.body_->GetNode();
 
 		SubscribeToEvent(E_SETSCENENODEBYMODELNODE, HANDLER(Sprint, HandleSetSceneNodeByModelNode));
 
 		VariantMap vm;
-		vm[GetSceneNodeByModelNode::P_NODE] = sceneNodeModelNode_;
+		vm[GetSceneNodeByModelNode::P_NODE] = targetModelNode_;
 		SendEvent(E_GETSCENENODEBYMODELNODE, vm);
 
 		UnsubscribeFromEvent(E_SETSCENENODEBYMODELNODE);
 		SubscribeToEvent(E_SETSCENENODECLIENTID, HANDLER(Sprint, HandleSetSceneNodeClientID));
 
 		VariantMap vm0;
-		vm0[GetSceneNodeClientID::P_NODE] = sceneNode_;
+		vm0[GetSceneNodeClientID::P_NODE] = targetSceneNode_;
 		SendEvent(E_GETSCENENODECLIENTID, vm0);
 
 		UnsubscribeFromEvent(E_SETSCENENODECLIENTID);
 
-		StartSprint(sceneNodeClientID_, 0.0f, true);
+		StartSprint(targetClientID_, 0.0f, true);
 	}
 	else
 	{
@@ -262,9 +262,9 @@ void Sprint::HandleSetSceneNodeByModelNode(StringHash eventType, VariantMap& eve
 {
 	Node* modelNode = (Node*)(eventData[SetSceneNodeByModelNode::P_MODELNODE].GetPtr());
 
-	if (modelNode == sceneNodeModelNode_)
+	if (modelNode == targetModelNode_)
 	{
-		sceneNode_ = (Node*)(eventData[SetSceneNodeByModelNode::P_SCENENODE].GetPtr());
+		targetSceneNode_ = (Node*)(eventData[SetSceneNodeByModelNode::P_SCENENODE].GetPtr());
 	}
 }
 
@@ -272,26 +272,26 @@ void Sprint::HandleSetSceneNodeClientID(StringHash eventType, VariantMap& eventD
 {
 	Node* sceneNode = (Node*)(eventData[SetSceneNodeClientID::P_NODE].GetPtr());
 
-	if (sceneNode == sceneNode_)
+	if (sceneNode == targetSceneNode_)
 	{
-		sceneNodeClientID_ = eventData[SetSceneNodeClientID::P_CLIENTID].GetInt();
+		targetClientID_ = eventData[SetSceneNodeClientID::P_CLIENTID].GetInt();
 	}
 }
 
 void Sprint::StartSprint(int clientID, float timeRamp, bool sendToServer)
 {
-	sceneNode_ = main_->GetSceneNode(clientID);
+	targetSceneNode_ = main_->GetSceneNode(clientID);
 
 	SubscribeToEvent(E_SETMODELNODEBYSCENENODE, HANDLER(Sprint, HandleSetModelNodeBySceneNode));
 
 	VariantMap vm0;
-	vm0[GetModelNodeBySceneNode::P_NODE] = sceneNode_;
+	vm0[GetModelNodeBySceneNode::P_NODE] = targetSceneNode_;
 	SendEvent(E_GETMODELNODEBYSCENENODE, vm0);
 
 	if (!isServer_)
 	{
-		sceneNodeModelNode_->AddChild(particleEndNode_);
-		victoria_ = sceneNodeModelNode_->GetPosition();
+		targetModelNode_->AddChild(particleEndNode_);
+		victoria_ = targetModelNode_->GetPosition();
 		victoria_.y_ += beeBox_.Size().y_;
 		particleEndNode_->SetWorldPosition(victoria_);
 		emitterEndFX_->SetEmitting(true);
@@ -304,7 +304,6 @@ void Sprint::StartSprint(int clientID, float timeRamp, bool sendToServer)
 
 	clientExecuting_ = true;
 	elapsedTime_ = timeRamp;
-	SubscribeToEvent(E_UPDATE, HANDLER(Sprint, HandleUpdate));
 
 	VariantMap vm;
 	vm[AnimateSceneNode::P_NODE] = node_;
@@ -314,10 +313,10 @@ void Sprint::StartSprint(int clientID, float timeRamp, bool sendToServer)
 	SendEvent(E_ANIMATESCENENODE, vm);
 
 	VariantMap vm1;
-	vm1[ModifyClientSpeed::P_NODE] = sceneNode_;
+	vm1[ModifyClientSpeed::P_NODE] = targetSceneNode_;
 	vm1[ModifyClientSpeed::P_SPEED] = sprint_;
 	vm1[ModifyClientSpeed::P_OPERATION] = 1;
-	vm1[ModifyClientSpeed::P_SENDTOSERVER] = sendToServer;
+	vm1[ModifyClientSpeed::P_SENDTOSERVER] = false;
 	SendEvent(E_MODIFYCLIENTSPEED, vm1);
 
 	if (sendToServer)
@@ -325,19 +324,21 @@ void Sprint::StartSprint(int clientID, float timeRamp, bool sendToServer)
 		msg_.Clear();
 		msg_.WriteInt(clientID_);
 		msg_.WriteString("Sprint");
-		msg_.WriteInt(sceneNodeClientID_);
+		msg_.WriteInt(targetClientID_);
 		msg_.WriteFloat(timeRamp);
 		network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
 	}
+
+	SubscribeToEvent(E_UPDATE, HANDLER(Sprint, HandleUpdate));
 }
 
 void Sprint::HandleSetModelNodeBySceneNode(StringHash eventType, VariantMap& eventData)
 {
 	Node* sceneNode = (Node*)(eventData[SetModelNodeBySceneNode::P_SCENENODE].GetPtr());
 
-	if (sceneNode == sceneNode_)
+	if (sceneNode == targetSceneNode_)
 	{
-		sceneNodeModelNode_ = (Node*)(eventData[SetModelNodeBySceneNode::P_MODELNODE].GetPtr());
+		targetModelNode_ = (Node*)(eventData[SetModelNodeBySceneNode::P_MODELNODE].GetPtr());
 
 		UnsubscribeFromEvent(E_SETMODELNODEBYSCENENODE);
 	}
@@ -364,21 +365,21 @@ void Sprint::HandleUpdate(StringHash eventType, VariantMap& eventData)
 			SubscribeToEvent(E_SETSCENENODEBYMODELNODE, HANDLER(Sprint, HandleSetSceneNodeByModelNode));
 
 			VariantMap vm;
-			vm[GetSceneNodeByModelNode::P_NODE] = sceneNodeModelNode_;
+			vm[GetSceneNodeByModelNode::P_NODE] = targetModelNode_;
 			SendEvent(E_GETSCENENODEBYMODELNODE, vm);
 
 			UnsubscribeFromEvent(E_SETSCENENODEBYMODELNODE);
 
 			VariantMap vm1;
-			vm1[ModifyClientSpeed::P_NODE] = sceneNode_;
+			vm1[ModifyClientSpeed::P_NODE] = targetSceneNode_;
 			vm1[ModifyClientSpeed::P_SPEED] = sprint_;
 			vm1[ModifyClientSpeed::P_OPERATION] = -1;
-			vm1[ModifyClientSpeed::P_SENDTOSERVER] = true;
+			vm1[ModifyClientSpeed::P_SENDTOSERVER] = false;
 			SendEvent(E_MODIFYCLIENTSPEED, vm1);
 
 			if (!isServer_)
 			{
-				sceneNodeModelNode_->RemoveChild(particleEndNode_);
+				targetModelNode_->RemoveChild(particleEndNode_);
 				emitterEndFX_->SetEmitting(false);
 			}
 		}
@@ -411,7 +412,7 @@ void Sprint::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 	{
 		if (clientID_ == clientID)
 		{
-			sceneNodeClientID_ = msg.ReadInt();
+			targetClientID_ = msg.ReadInt();
 			float timeRamp = msg.ReadFloat();
 
 			SubscribeToEvent(E_SETLAGTIME, HANDLER(Sprint, HandleSetLagTime));
@@ -422,14 +423,14 @@ void Sprint::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 
 			timeRamp += lagTime_;
 
-			StartSprint(sceneNodeClientID_, timeRamp, false);
+			StartSprint(targetClientID_, timeRamp, false);
 
 			if (isServer_)
 			{
 				msg_.Clear();
 				msg_.WriteInt(clientID_);
 				msg_.WriteString("Sprint");
-				msg_.WriteInt(sceneNodeClientID_);
+				msg_.WriteInt(targetClientID_);
 				msg_.WriteFloat(timeRamp);
 
 				VariantMap vm0;
@@ -476,7 +477,7 @@ void Sprint::HandleGetLc(StringHash eventType, VariantMap& eventData)
 		msg_.Clear();
 		msg_.WriteInt(clientID_);
 		msg_.WriteString("Sprint");
-		msg_.WriteInt(sceneNodeClientID_);
+		msg_.WriteInt(targetClientID_);
 		msg_.WriteFloat(timeRamp);
 		conn->SendMessage(MSG_LCMSG, true, true, msg_);
 	}

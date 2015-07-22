@@ -1,7 +1,7 @@
 /*
- * Melee.cpp
+ * DPSHeal.cpp
  *
- *  Created on: Jul 21, 2015
+ *  Created on: Jul 22, 2015
  *      Author: practicing01
  */
 
@@ -32,12 +32,12 @@
 #include <Urho3D/Audio/Sound.h>
 #include <Urho3D/Audio/SoundSource3D.h>
 
-#include "Melee.h"
+#include "DPSHeal.h"
 #include "../../../network/NetworkConstants.h"
 #include "../../../Constants.h"
 #include "TimedRemove.h"
 
-Melee::Melee(Context* context, Urho3DPlayer* main) :
+DPSHeal::DPSHeal(Context* context, Urho3DPlayer* main) :
 	LogicComponent(context)
 {
 	main_ = main;
@@ -50,41 +50,41 @@ Melee::Melee(Context* context, Urho3DPlayer* main) :
 	damage_ = 10;
 }
 
-Melee::~Melee()
+DPSHeal::~DPSHeal()
 {
 }
 
-void Melee::Start()
+void DPSHeal::Start()
 {
 	scene_ = node_->GetScene();
 
 	particleStartNode_ = scene_->CreateChild(0,LOCAL);
 	emitterStartFX_ = particleStartNode_->CreateComponent<ParticleEmitter>(LOCAL);
-	emitterStartFX_->SetEffect(main_->cache_->GetResource<ParticleEffect>("Particle/sweat.xml"));
-	particleStartNode_->SetWorldScale(Vector3::ONE);
+	emitterStartFX_->SetEffect(main_->cache_->GetResource<ParticleEffect>("Particle/dpsheal.xml"));
+	particleStartNode_->SetWorldScale(Vector3::ONE * 2.0f);
 	emitterStartFX_->SetEmitting(false);
 	emitterStartFX_->SetViewMask(1);
 
-	SubscribeToEvent(E_SETISSERVER, HANDLER(Melee, HandleSetIsServer));
+	SubscribeToEvent(E_SETISSERVER, HANDLER(DPSHeal, HandleSetIsServer));
 
 	VariantMap vm0;
 	SendEvent(E_GETISSERVER, vm0);
 
-	SubscribeToEvent(E_SETCLIENTMODELNODE, HANDLER(Melee, HandleSetClientModelNode));
+	SubscribeToEvent(E_SETCLIENTMODELNODE, HANDLER(DPSHeal, HandleSetClientModelNode));
 
 	VariantMap vm;
 	vm[GetClientModelNode::P_NODE] = node_;
 	SendEvent(E_GETCLIENTMODELNODE, vm);
 
 	UnsubscribeFromEvent(E_SETCLIENTMODELNODE);
-	SubscribeToEvent(E_SETCLIENTID, HANDLER(Melee, HandleSetClientID));
+	SubscribeToEvent(E_SETCLIENTID, HANDLER(DPSHeal, HandleSetClientID));
 
 	VariantMap vm1;
 	vm1[GetClientID::P_NODE] = main_->GetRootNode(node_);
 	SendEvent(E_GETCLIENTID, vm1);
 
 	UnsubscribeFromEvent(E_SETCLIENTID);
-	SubscribeToEvent(E_SETCONNECTION, HANDLER(Melee, HandleSetConnection));
+	SubscribeToEvent(E_SETCONNECTION, HANDLER(DPSHeal, HandleSetConnection));
 
 	VariantMap vm2;
 	vm2[GetConnection::P_NODE] = main_->GetRootNode(node_);
@@ -92,20 +92,20 @@ void Melee::Start()
 
 	UnsubscribeFromEvent(E_SETCONNECTION);
 
-	SubscribeToEvent(E_LCMSG, HANDLER(Melee, HandleLCMSG));
+	SubscribeToEvent(E_LCMSG, HANDLER(DPSHeal, HandleLCMSG));
 
 	if (main_->IsLocalClient(node_))
 	{
-		SubscribeToEvent(E_MECHANICREQUEST, HANDLER(Melee, HandleMechanicRequest));
+		SubscribeToEvent(E_MECHANICREQUEST, HANDLER(DPSHeal, HandleMechanicRequest));
 	}
 }
 
-void Melee::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
+void DPSHeal::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 {
 	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
 }
 
-void Melee::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData)
+void DPSHeal::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetClientModelNode::P_NODE].GetPtr());
 
@@ -119,7 +119,7 @@ void Melee::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData
 	}
 }
 
-void Melee::HandleSetClientID(StringHash eventType, VariantMap& eventData)
+void DPSHeal::HandleSetClientID(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetClientID::P_NODE].GetPtr());
 
@@ -129,7 +129,7 @@ void Melee::HandleSetClientID(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Melee::HandleSetConnection(StringHash eventType, VariantMap& eventData)
+void DPSHeal::HandleSetConnection(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetConnection::P_NODE].GetPtr());
 
@@ -139,46 +139,46 @@ void Melee::HandleSetConnection(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Melee::HandleMechanicRequest(StringHash eventType, VariantMap& eventData)
+void DPSHeal::HandleMechanicRequest(StringHash eventType, VariantMap& eventData)
 {
 	String mechanicID = eventData[MechanicRequest::P_MECHANICID].GetString();
 
-	if (mechanicID == "Melee")
+	if (mechanicID == "DPSHeal")
 	{
-		SubscribeToEvent(E_SETCLIENTBLIND, HANDLER(Melee, HandleSetBlind));
+		SubscribeToEvent(E_SETCLIENTSILENCE, HANDLER(DPSHeal, HandleSetSilence));
 
 		if (!clientExecuting_)
 		{
 			VariantMap vm;
-			vm[GetClientBlind::P_NODE] = node_;
-			SendEvent(E_GETCLIENTBLIND, vm);
+			vm[GetClientSilence::P_NODE] = node_;
+			SendEvent(E_GETCLIENTSILENCE, vm);
 
-			if (!blind_)
+			if (!silence_)
 			{
 				clientExecuting_ = true;
 				elapsedTime_ = 0.0f;
 
-				StartMelee(modelNode_->GetPosition(), true);
+				StartDPSHeal(modelNode_->GetPosition(), true);
 
-				SubscribeToEvent(E_UPDATE, HANDLER(Melee, HandleUpdate));
+				SubscribeToEvent(E_UPDATE, HANDLER(DPSHeal, HandleUpdate));
 			}
 		}
 	}
 }
 
-void Melee::HandleSetBlind(StringHash eventType, VariantMap& eventData)
+void DPSHeal::HandleSetSilence(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetClientSilence::P_NODE].GetPtr());
 
 	if (clientNode == node_)
 	{
-		blind_ = eventData[SetClientBlind::P_BLIND].GetBool();
+		silence_ = eventData[SetClientSilence::P_SILENCE].GetBool();
 
-		UnsubscribeFromEvent(E_GETCLIENTBLIND);
+		UnsubscribeFromEvent(E_GETCLIENTSILENCE);
 	}
 }
 
-void Melee::HandleSetArmor(StringHash eventType, VariantMap& eventData)
+void DPSHeal::HandleSetArmor(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetClientArmor::P_NODE].GetPtr());
 
@@ -190,7 +190,7 @@ void Melee::HandleSetArmor(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Melee::StartMelee(Vector3 pos, bool sendToServer)
+void DPSHeal::StartDPSHeal(Vector3 pos, bool sendToServer)
 {
 	VariantMap vm;
 	vm[AnimateSceneNode::P_NODE] = node_;
@@ -222,7 +222,7 @@ void Melee::StartMelee(Vector3 pos, bool sendToServer)
 					SharedPtr<Node> particleEndNode = SharedPtr<Node>(scene_->CreateChild(0,LOCAL));
 					particleEndNode->SetPosition(victoria_);
 					ParticleEmitter* emitterEndFX = particleEndNode->CreateComponent<ParticleEmitter>(LOCAL);
-					emitterEndFX->SetEffect(main_->cache_->GetResource<ParticleEffect>("Particle/blood.xml"));
+					emitterEndFX->SetEffect(main_->cache_->GetResource<ParticleEffect>("Particle/dpsheal.xml"));
 					particleEndNode->SetWorldScale(Vector3::ONE);
 					emitterEndFX->SetEmitting(true);
 					emitterEndFX->SetViewMask(1);
@@ -232,7 +232,7 @@ void Melee::StartMelee(Vector3 pos, bool sendToServer)
 
 				targetModelNode_ = noed;
 				//Get target scene node.
-				SubscribeToEvent(E_SETSCENENODEBYMODELNODE, HANDLER(Melee, HandleSetSceneNodeByModelNode));
+				SubscribeToEvent(E_SETSCENENODEBYMODELNODE, HANDLER(DPSHeal, HandleSetSceneNodeByModelNode));
 
 				VariantMap vm0;
 				vm0[GetSceneNodeByModelNode::P_NODE] = targetModelNode_;
@@ -241,20 +241,20 @@ void Melee::StartMelee(Vector3 pos, bool sendToServer)
 				UnsubscribeFromEvent(E_SETSCENENODEBYMODELNODE);
 
 				//Get target armor.
-				SubscribeToEvent(E_SETCLIENTARMOR, HANDLER(Melee, HandleSetArmor));
+				SubscribeToEvent(E_SETCLIENTARMOR, HANDLER(DPSHeal, HandleSetArmor));
 
 				VariantMap vm2;
 				vm2[GetClientArmor::P_NODE] = targetSceneNode_;
 				SendEvent(E_GETCLIENTARMOR, vm2);
 
-				int damage = damage_ - targetArmor_;
-LOGERRORF("damage %d",damage);
+				int damage = damage_ + targetArmor_;
+
 				if (damage > 0)
 				{
 					VariantMap vm1;
 					vm1[ModifyClientHealth::P_NODE] = targetSceneNode_;
 					vm1[ModifyClientHealth::P_HEALTH] = damage;
-					vm1[ModifyClientHealth::P_OPERATION] = -1;
+					vm1[ModifyClientHealth::P_OPERATION] = 1;
 					vm1[ModifyClientHealth::P_SENDTOSERVER] = false;
 					SendEvent(E_MODIFYCLIENTHEALTH, vm1);
 				}
@@ -266,13 +266,13 @@ LOGERRORF("damage %d",damage);
 	{
 		msg_.Clear();
 		msg_.WriteInt(clientID_);
-		msg_.WriteString("Melee");
+		msg_.WriteString("DPSHeal");
 		msg_.WriteVector3(pos);
 		network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
 	}
 }
 
-void Melee::HandleSetSceneNodeByModelNode(StringHash eventType, VariantMap& eventData)
+void DPSHeal::HandleSetSceneNodeByModelNode(StringHash eventType, VariantMap& eventData)
 {
 	Node* modelNode = (Node*)(eventData[SetSceneNodeByModelNode::P_MODELNODE].GetPtr());
 
@@ -282,7 +282,7 @@ void Melee::HandleSetSceneNodeByModelNode(StringHash eventType, VariantMap& even
 	}
 }
 
-void Melee::HandleUpdate(StringHash eventType, VariantMap& eventData)
+void DPSHeal::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
 	float timeStep = eventData[Update::P_TIMESTEP].GetFloat();
 
@@ -293,26 +293,26 @@ void Melee::HandleUpdate(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Melee::HandleLCMSG(StringHash eventType, VariantMap& eventData)
+void DPSHeal::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 {
 	const PODVector<unsigned char>& data = eventData[LcMsg::P_DATA].GetBuffer();
 	MemoryBuffer msg(data);
 	int clientID = msg.ReadInt();
 	String lc = msg.ReadString();
 
-	if (lc == "Melee")
+	if (lc == "DPSHeal")
 	{
 		if (clientID_ == clientID)
 		{
 			Vector3 pos = msg.ReadVector3();
 
-			StartMelee(pos, false);
+			StartDPSHeal(pos, false);
 
 			if (isServer_)
 			{
 				msg_.Clear();
 				msg_.WriteInt(clientID_);
-				msg_.WriteString("Melee");
+				msg_.WriteString("DPSHeal");
 				msg_.WriteVector3(pos);
 
 				VariantMap vm0;

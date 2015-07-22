@@ -25,8 +25,23 @@ public:
 	~Blind();
 	virtual void Start();
 	void HandleGetBlind(StringHash eventType, VariantMap& eventData);
+	void HandleSetIsServer(StringHash eventType, VariantMap& eventData);
+	void HandleSetClientID(StringHash eventType, VariantMap& eventData);
+	void HandleSetConnection(StringHash eventType, VariantMap& eventData);
+	void HandleLCMSG(StringHash eventType, VariantMap& eventData);
+	void HandleGetLc(StringHash eventType, VariantMap& eventData);
+	void HandleModifyBlind(StringHash eventType, VariantMap& eventData);
+	void ModifyBlind(bool state, bool sendToServer);
 
 	Urho3DPlayer* main_;
 
-	float blind_;
+	Network* network_;
+
+	VectorBuffer msg_;
+
+	bool isServer_;
+	int clientID_;
+	Connection* conn_;
+
+	bool blind_;
 };

@@ -1,7 +1,7 @@
 /*
- * Melee.h
+ * DPSHeal.h
  *
- *  Created on: Jul 21, 2015
+ *  Created on: Jul 22, 2015
  *      Author: practicing01
  */
 
@@ -18,12 +18,12 @@
 
 using namespace Urho3D;
 
-class Melee : public LogicComponent
+class DPSHeal : public LogicComponent
 {
-	OBJECT(Melee);
+	OBJECT(DPSHeal);
 public:
-	Melee(Context* context, Urho3DPlayer* main);
-	~Melee();
+	DPSHeal(Context* context, Urho3DPlayer* main);
+	~DPSHeal();
 	virtual void Start();
 	void HandleTouchEnd(StringHash eventType, VariantMap& eventData);
 	void HandleSetClientModelNode(StringHash eventType, VariantMap& eventData);
@@ -32,8 +32,8 @@ public:
 	void HandleSetConnection(StringHash eventType, VariantMap& eventData);
 	void HandleSetIsServer(StringHash eventType, VariantMap& eventData);
 	void HandleMechanicRequest(StringHash eventType, VariantMap& eventData);
-	void HandleSetBlind(StringHash eventType, VariantMap& eventData);
-	void StartMelee(Vector3 pos, bool sendToServer);
+	void HandleSetSilence(StringHash eventType, VariantMap& eventData);
+	void StartDPSHeal(Vector3 pos, bool sendToServer);
 	void HandleUpdate(StringHash eventType, VariantMap& eventData);
 	void HandleSetSceneNodeByModelNode(StringHash eventType, VariantMap& eventData);
 	void HandleSetArmor(StringHash eventType, VariantMap& eventData);
@@ -63,7 +63,7 @@ public:
 	float elapsedTime_;
 	bool clientExecuting_;
 	float cooldown_;
-	bool blind_;
+	bool silence_;
 	Vector3 victoria_;
 	Node* targetSceneNode_;
 	Node* targetModelNode_;

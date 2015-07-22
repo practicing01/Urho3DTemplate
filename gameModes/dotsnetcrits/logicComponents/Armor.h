@@ -1,7 +1,7 @@
 /*
- * Speed.h
+ * Armor.h
  *
- *  Created on: Jul 13, 2015
+ *  Created on: Jul 22, 2015
  *      Author: practicing01
  */
 
@@ -17,21 +17,21 @@
 
 using namespace Urho3D;
 
-class Speed : public LogicComponent
+class Armor : public LogicComponent
 {
-	OBJECT(Speed);
+	OBJECT(Armor);
 public:
-	Speed(Context* context, Urho3DPlayer* main);
-	~Speed();
+	Armor(Context* context, Urho3DPlayer* main);
+	~Armor();
 	virtual void Start();
-	void HandleGetSpeed(StringHash eventType, VariantMap& eventData);
+	void HandleGetArmor(StringHash eventType, VariantMap& eventData);
 	void HandleSetIsServer(StringHash eventType, VariantMap& eventData);
 	void HandleSetClientID(StringHash eventType, VariantMap& eventData);
 	void HandleSetConnection(StringHash eventType, VariantMap& eventData);
 	void HandleLCMSG(StringHash eventType, VariantMap& eventData);
 	void HandleGetLc(StringHash eventType, VariantMap& eventData);
-	void HandleModifySpeed(StringHash eventType, VariantMap& eventData);
-	void ModifySpeed(float speedMod, int operation, bool sendToServer);
+	void HandleModifyArmor(StringHash eventType, VariantMap& eventData);
+	void ModifyArmor(int armorMod, int operation, bool sendToServer);
 
 	Urho3DPlayer* main_;
 
@@ -43,5 +43,5 @@ public:
 	int clientID_;
 	Connection* conn_;
 
-	float speed_;
+	int armor_;
 };

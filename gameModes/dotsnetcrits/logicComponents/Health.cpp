@@ -114,14 +114,14 @@ void Health::HandleModifyHealth(StringHash eventType, VariantMap& eventData)
 	if (clientNode == node_)
 	{
 		int healthMod = eventData[ModifyClientHealth::P_HEALTH].GetInt();
-		char operation = eventData[ModifyClientHealth::P_OPERATION].GetInt();
+		int operation = eventData[ModifyClientHealth::P_OPERATION].GetInt();
 		bool sendToServer = eventData[ModifyClientHealth::P_SENDTOSERVER].GetBool();
 
 		ModifyHealth(healthMod, operation, sendToServer);
 	}
 }
 
-void Health::ModifyHealth(int healthMod, char operation, bool sendToServer)
+void Health::ModifyHealth(int healthMod, int operation, bool sendToServer)
 {
 	if (operation == 0)
 	{
@@ -164,7 +164,7 @@ void Health::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 		if (clientID_ == clientID)
 		{
 			int healthMod = msg.ReadInt();
-			char operation = msg.ReadInt();
+			int operation = msg.ReadInt();
 
 			ModifyHealth(healthMod, operation, false);
 

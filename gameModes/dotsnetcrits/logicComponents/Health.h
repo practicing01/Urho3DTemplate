@@ -31,7 +31,7 @@ public:
 	void HandleLCMSG(StringHash eventType, VariantMap& eventData);
 	void HandleGetLc(StringHash eventType, VariantMap& eventData);
 	void HandleModifyHealth(StringHash eventType, VariantMap& eventData);
-	void ModifyHealth(int healthMod, char operation, bool sendToServer);
+	void ModifyHealth(int healthMod, int operation, bool sendToServer);
 
 	Urho3DPlayer* main_;
 

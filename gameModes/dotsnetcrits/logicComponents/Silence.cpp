@@ -105,7 +105,7 @@ void Silence::HandleSetConnection(StringHash eventType, VariantMap& eventData)
 
 void Silence::HandleModifySilence(StringHash eventType, VariantMap& eventData)
 {
-	Node* clientNode = (Node*)(eventData[ModifyClientSpeed::P_NODE].GetPtr());
+	Node* clientNode = (Node*)(eventData[ModifyClientSilence::P_NODE].GetPtr());
 
 	if (clientNode == node_)
 	{

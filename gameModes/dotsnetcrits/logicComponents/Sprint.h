@@ -70,7 +70,7 @@ public:
 	float sprintElapsedTime_;
 	bool sprinted_;
 	float sprint_;
-	int sceneNodeClientID_;
-	Node* sceneNodeModelNode_;
-	Node* sceneNode_;
+	int targetClientID_;
+	Node* targetModelNode_;
+	Node* targetSceneNode_;
 };

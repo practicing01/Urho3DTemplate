@@ -225,30 +225,30 @@ void Mute::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
 
 	scene_->GetComponent<PhysicsWorld>()->RaycastSingle(raeResult_, cameraRay, 1000.0f, 2);//todo define masks.
 
-	sceneNodeClientID_ = -1;
-	sceneNodeModelNode_ = NULL;
-	sceneNode_ = NULL;
+	targetClientID_ = -1;
+	targetModelNode_ = NULL;
+	targetSceneNode_ = NULL;
 
 	if (raeResult_.body_)
 	{
-		sceneNodeModelNode_ = raeResult_.body_->GetNode();
+		targetModelNode_ = raeResult_.body_->GetNode();
 
 		SubscribeToEvent(E_SETSCENENODEBYMODELNODE, HANDLER(Mute, HandleSetSceneNodeByModelNode));
 
 		VariantMap vm;
-		vm[GetSceneNodeByModelNode::P_NODE] = sceneNodeModelNode_;
+		vm[GetSceneNodeByModelNode::P_NODE] = targetModelNode_;
 		SendEvent(E_GETSCENENODEBYMODELNODE, vm);
 
 		UnsubscribeFromEvent(E_SETSCENENODEBYMODELNODE);
 		SubscribeToEvent(E_SETSCENENODECLIENTID, HANDLER(Mute, HandleSetSceneNodeClientID));
 
 		VariantMap vm0;
-		vm0[GetSceneNodeClientID::P_NODE] = sceneNode_;
+		vm0[GetSceneNodeClientID::P_NODE] = targetSceneNode_;
 		SendEvent(E_GETSCENENODECLIENTID, vm0);
 
 		UnsubscribeFromEvent(E_SETSCENENODECLIENTID);
 
-		StartMute(sceneNodeClientID_, 0.0f, true);
+		StartMute(targetClientID_, 0.0f, true);
 	}
 	else
 	{
@@ -261,9 +261,9 @@ void Mute::HandleSetSceneNodeByModelNode(StringHash eventType, VariantMap& event
 {
 	Node* modelNode = (Node*)(eventData[SetSceneNodeByModelNode::P_MODELNODE].GetPtr());
 
-	if (modelNode == sceneNodeModelNode_)
+	if (modelNode == targetModelNode_)
 	{
-		sceneNode_ = (Node*)(eventData[SetSceneNodeByModelNode::P_SCENENODE].GetPtr());
+		targetSceneNode_ = (Node*)(eventData[SetSceneNodeByModelNode::P_SCENENODE].GetPtr());
 	}
 }
 
@@ -271,26 +271,26 @@ void Mute::HandleSetSceneNodeClientID(StringHash eventType, VariantMap& eventDat
 {
 	Node* sceneNode = (Node*)(eventData[SetSceneNodeClientID::P_NODE].GetPtr());
 
-	if (sceneNode == sceneNode_)
+	if (sceneNode == targetSceneNode_)
 	{
-		sceneNodeClientID_ = eventData[SetSceneNodeClientID::P_CLIENTID].GetInt();
+		targetClientID_ = eventData[SetSceneNodeClientID::P_CLIENTID].GetInt();
 	}
 }
 
 void Mute::StartMute(int clientID, float timeRamp, bool sendToServer)
 {
-	sceneNode_ = main_->GetSceneNode(clientID);
+	targetSceneNode_ = main_->GetSceneNode(clientID);
 
 	SubscribeToEvent(E_SETMODELNODEBYSCENENODE, HANDLER(Mute, HandleSetModelNodeBySceneNode));
 
 	VariantMap vm0;
-	vm0[GetModelNodeBySceneNode::P_NODE] = sceneNode_;
+	vm0[GetModelNodeBySceneNode::P_NODE] = targetSceneNode_;
 	SendEvent(E_GETMODELNODEBYSCENENODE, vm0);
 
 	if (!isServer_)
 	{
-		sceneNodeModelNode_->AddChild(particleEndNode_);
-		victoria_ = sceneNodeModelNode_->GetPosition();
+		targetModelNode_->AddChild(particleEndNode_);
+		victoria_ = targetModelNode_->GetPosition();
 		victoria_.y_ += beeBox_.Size().y_;
 		particleEndNode_->SetWorldPosition(victoria_);
 		emitterEndFX_->SetEmitting(true);
@@ -313,9 +313,9 @@ void Mute::StartMute(int clientID, float timeRamp, bool sendToServer)
 	SendEvent(E_ANIMATESCENENODE, vm);
 
 	VariantMap vm1;
-	vm1[ModifyClientSilence::P_NODE] = sceneNode_;
+	vm1[ModifyClientSilence::P_NODE] = targetSceneNode_;
 	vm1[ModifyClientSilence::P_STATE] = true;
-	vm1[ModifyClientSilence::P_SENDTOSERVER] = sendToServer;
+	vm1[ModifyClientSilence::P_SENDTOSERVER] = false;
 	SendEvent(E_MODIFYCLIENTSILENCE, vm1);
 
 	if (sendToServer)
@@ -323,7 +323,7 @@ void Mute::StartMute(int clientID, float timeRamp, bool sendToServer)
 		msg_.Clear();
 		msg_.WriteInt(clientID_);
 		msg_.WriteString("Mute");
-		msg_.WriteInt(sceneNodeClientID_);
+		msg_.WriteInt(targetClientID_);
 		msg_.WriteFloat(timeRamp);
 		network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
 	}
@@ -333,9 +333,9 @@ void Mute::HandleSetModelNodeBySceneNode(StringHash eventType, VariantMap& event
 {
 	Node* sceneNode = (Node*)(eventData[SetModelNodeBySceneNode::P_SCENENODE].GetPtr());
 
-	if (sceneNode == sceneNode_)
+	if (sceneNode == targetSceneNode_)
 	{
-		sceneNodeModelNode_ = (Node*)(eventData[SetModelNodeBySceneNode::P_MODELNODE].GetPtr());
+		targetModelNode_ = (Node*)(eventData[SetModelNodeBySceneNode::P_MODELNODE].GetPtr());
 
 		UnsubscribeFromEvent(E_SETMODELNODEBYSCENENODE);
 	}
@@ -362,20 +362,20 @@ void Mute::HandleUpdate(StringHash eventType, VariantMap& eventData)
 			SubscribeToEvent(E_SETSCENENODEBYMODELNODE, HANDLER(Mute, HandleSetSceneNodeByModelNode));
 
 			VariantMap vm;
-			vm[GetSceneNodeByModelNode::P_NODE] = sceneNodeModelNode_;
+			vm[GetSceneNodeByModelNode::P_NODE] = targetModelNode_;
 			SendEvent(E_GETSCENENODEBYMODELNODE, vm);
 
 			UnsubscribeFromEvent(E_SETSCENENODEBYMODELNODE);
 
 			VariantMap vm1;
-			vm1[ModifyClientSilence::P_NODE] = sceneNode_;
+			vm1[ModifyClientSilence::P_NODE] = targetSceneNode_;
 			vm1[ModifyClientSilence::P_STATE] = false;
-			vm1[ModifyClientSilence::P_SENDTOSERVER] = true;
+			vm1[ModifyClientSilence::P_SENDTOSERVER] = false;
 			SendEvent(E_MODIFYCLIENTSILENCE, vm1);
 
 			if (!isServer_)
 			{
-				sceneNodeModelNode_->RemoveChild(particleEndNode_);
+				targetModelNode_->RemoveChild(particleEndNode_);
 				emitterEndFX_->SetEmitting(false);
 			}
 		}
@@ -408,7 +408,7 @@ void Mute::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 	{
 		if (clientID_ == clientID)
 		{
-			sceneNodeClientID_ = msg.ReadInt();
+			targetClientID_ = msg.ReadInt();
 			float timeRamp = msg.ReadFloat();
 
 			SubscribeToEvent(E_SETLAGTIME, HANDLER(Mute, HandleSetLagTime));
@@ -419,14 +419,14 @@ void Mute::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 
 			timeRamp += lagTime_;
 
-			StartMute(sceneNodeClientID_, timeRamp, false);
+			StartMute(targetClientID_, timeRamp, false);
 
 			if (isServer_)
 			{
 				msg_.Clear();
 				msg_.WriteInt(clientID_);
 				msg_.WriteString("Mute");
-				msg_.WriteInt(sceneNodeClientID_);
+				msg_.WriteInt(targetClientID_);
 				msg_.WriteFloat(timeRamp);
 
 				VariantMap vm0;
@@ -473,7 +473,7 @@ void Mute::HandleGetLc(StringHash eventType, VariantMap& eventData)
 		msg_.Clear();
 		msg_.WriteInt(clientID_);
 		msg_.WriteString("Mute");
-		msg_.WriteInt(sceneNodeClientID_);
+		msg_.WriteInt(targetClientID_);
 		msg_.WriteFloat(timeRamp);
 		conn->SendMessage(MSG_LCMSG, true, true, msg_);
 	}

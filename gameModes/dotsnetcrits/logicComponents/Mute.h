@@ -69,7 +69,7 @@ public:
 	float MuteDuration_;
 	float MuteElapsedTime_;
 	bool Muted_;
-	int sceneNodeClientID_;
-	Node* sceneNodeModelNode_;
-	Node* sceneNode_;
+	int targetClientID_;
+	Node* targetModelNode_;
+	Node* targetSceneNode_;
 };

@@ -114,14 +114,14 @@ void Speed::HandleModifySpeed(StringHash eventType, VariantMap& eventData)
 	if (clientNode == node_)
 	{
 		float speedMod = eventData[ModifyClientSpeed::P_SPEED].GetFloat();
-		char operation = eventData[ModifyClientSpeed::P_OPERATION].GetInt();
+		int operation = eventData[ModifyClientSpeed::P_OPERATION].GetInt();
 		bool sendToServer = eventData[ModifyClientSpeed::P_SENDTOSERVER].GetBool();
 
 		ModifySpeed(speedMod, operation, sendToServer);
 	}
 }
 
-void Speed::ModifySpeed(float speedMod, char operation, bool sendToServer)
+void Speed::ModifySpeed(float speedMod, int operation, bool sendToServer)
 {
 	if (operation == 0)
 	{
@@ -159,7 +159,7 @@ void Speed::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 		if (clientID_ == clientID)
 		{
 			float speedMod = msg.ReadFloat();
-			char operation = msg.ReadInt();
+			int operation = msg.ReadInt();
 
 			ModifySpeed(speedMod, operation, false);
 

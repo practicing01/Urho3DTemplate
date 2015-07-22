@@ -1,7 +1,7 @@
 /*
- * Snare.h
+ * Shield.h
  *
- *  Created on: Jul 20, 2015
+ *  Created on: Jul 22, 2015
  *      Author: practicing01
  */
 
@@ -18,12 +18,12 @@
 
 using namespace Urho3D;
 
-class Snare : public LogicComponent
+class Shield : public LogicComponent
 {
-	OBJECT(Snare);
+	OBJECT(Shield);
 public:
-	Snare(Context* context, Urho3DPlayer* main);
-	~Snare();
+	Shield(Context* context, Urho3DPlayer* main);
+	~Shield();
 	virtual void Start();
 	void HandleUpdate(StringHash eventType, VariantMap& eventData);
 	void HandleSetIsServer(StringHash eventType, VariantMap& eventData);
@@ -41,7 +41,7 @@ public:
 	void HandleSetSceneNodeClientID(StringHash eventType, VariantMap& eventData);
 	void HandleSetModelNodeBySceneNode(StringHash eventType, VariantMap& eventData);
 	void HandleSetLagTime(StringHash eventType, VariantMap& eventData);
-	void StartSnare(int clientID, float timeRamp, bool sendToServer);
+	void StartShield(int clientID, float timeRamp, bool sendToServer);
 
 	Urho3DPlayer* main_;
 
@@ -66,11 +66,11 @@ public:
 	bool clientExecuting_;
 	float cooldown_;
 	bool silence_;
-	float snareDuration_;
-	float snareElapsedTime_;
-	bool snared_;
-	float snare_;
-	int targetClientID;
-	Node* targetModelNode;
+	float shieldDuration_;
+	float shieldElapsedTime_;
+	bool shielded_;
+	int shield_;
+	int targetClientID_;
+	Node* targetModelNode_;
 	Node* targetSceneNode_;
 };
