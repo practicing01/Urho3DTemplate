@@ -136,7 +136,10 @@ void Health::ModifyHealth(int healthMod, char operation, bool sendToServer)
 		health_ -= healthMod;
 	}
 
-	//todo handle respawn with d&c server listening to health mods
+	VariantMap vm;
+	vm[ClientHealthSet::P_NODE] = node_;
+	vm[ClientHealthSet::P_HEALTH] = health_;
+	SendEvent(E_CLIENTHEALTHSET, vm);
 
 	if (sendToServer)
 	{

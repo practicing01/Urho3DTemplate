@@ -43,6 +43,7 @@
 #include "logicComponents/Blind.h"
 #include "logicComponents/Melee.h"
 #include "logicComponents/Health.h"
+#include "logicComponents/Mute.h"
 
 DotsNetCrits::DotsNetCrits(Context* context, Urho3DPlayer* main, bool isServer) :
 	LogicComponent(context)
@@ -114,6 +115,7 @@ void DotsNetCrits::Start()
 	SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(DotsNetCrits, HandleNetworkMessage));
 	SubscribeToEvent(E_GAMEMENUDISPLAY, HANDLER(DotsNetCrits, HandleDisplayMenu));
 	SubscribeToEvent(E_NEWCLIENTID, HANDLER(DotsNetCrits, HandleNewClientID));
+	SubscribeToEvent(E_CLIENTHEALTHSET, HANDLER(DotsNetCrits, HandleClientHealthSet));
 }
 
 void DotsNetCrits::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
@@ -251,6 +253,8 @@ void DotsNetCrits::AttachLogicComponents(SharedPtr<Node> sceneNode)
 	sceneNode->AddComponent(new Melee(context_, main_), 0, LOCAL);
 
 	sceneNode->AddComponent(new Health(context_, main_), 0, LOCAL);
+
+	sceneNode->AddComponent(new Mute(context_, main_), 0, LOCAL);
 }
 
 void DotsNetCrits::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData)
@@ -270,4 +274,59 @@ void DotsNetCrits::HandleGetIsServer(StringHash eventType, VariantMap& eventData
 	VariantMap vm;
 	vm[SetIsServer::P_ISSERVER] = isServer_;
 	SendEvent(E_SETISSERVER, vm);
+}
+
+void DotsNetCrits::HandleClientHealthSet(StringHash eventType, VariantMap& eventData)
+{
+	if (!isServer_)
+	{
+		return;
+	}
+
+	targetSceneNode_ = (Node*)(eventData[ModifyClientHealth::P_NODE].GetPtr());
+	int health = eventData[ClientHealthSet::P_HEALTH].GetInt();
+
+	if (health <= 0)
+	{
+		SubscribeToEvent(E_SETSCENENODECLIENTID, HANDLER(DotsNetCrits, HandleSetSceneNodeClientID));
+
+		VariantMap vm0;
+		vm0[GetSceneNodeClientID::P_NODE] = targetSceneNode_;
+		SendEvent(E_GETSCENENODECLIENTID, vm0);
+
+		UnsubscribeFromEvent(E_SETSCENENODECLIENTID);
+
+		int index = Random( 0, spawnPoints_.Size() );
+		RespawnNode(SharedPtr<Node>(targetSceneNode_), index);
+
+		msg_.Clear();
+		msg_.WriteInt(GAMEMODEMSG_RESPAWNNODE);
+		msg_.WriteInt(targetSceneNodeClientID_);
+		msg_.WriteInt(index);
+		network_->BroadcastMessage(MSG_GAMEMODEMSG, true, true, msg_);
+
+		VariantMap vm1;
+		vm1[ModifyClientHealth::P_NODE] = targetSceneNode_;
+		vm1[ModifyClientHealth::P_HEALTH] = 100;
+		vm1[ModifyClientHealth::P_OPERATION] = 0;
+		vm1[ModifyClientHealth::P_SENDTOSERVER] = false;
+		SendEvent(E_MODIFYCLIENTHEALTH, vm1);
+
+		msg_.Clear();//todo better way of doing this stuff
+		msg_.WriteInt(targetSceneNodeClientID_);
+		msg_.WriteString("Health");
+		msg_.WriteInt(100);
+		msg_.WriteInt(0);
+		network_->BroadcastMessage(MSG_LCMSG, true, true, msg_);
+	}
+}
+
+void DotsNetCrits::HandleSetSceneNodeClientID(StringHash eventType, VariantMap& eventData)
+{
+	Node* sceneNode = (Node*)(eventData[SetSceneNodeClientID::P_NODE].GetPtr());
+
+	if (sceneNode == targetSceneNode_)
+	{
+		targetSceneNodeClientID_ = eventData[SetSceneNodeClientID::P_CLIENTID].GetInt();
+	}
 }

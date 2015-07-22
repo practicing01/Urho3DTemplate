@@ -37,6 +37,8 @@ Silence::Silence(Context* context, Urho3DPlayer* main) :
 {
 	main_ = main;
 	silence_ = false;
+	network_ = GetSubsystem<Network>();
+	isServer_ = false;
 }
 
 Silence::~Silence()
@@ -46,6 +48,18 @@ Silence::~Silence()
 void Silence::Start()
 {
 	SubscribeToEvent(E_GETCLIENTSILENCE, HANDLER(Silence, HandleGetSilence));
+	SubscribeToEvent(E_SETISSERVER, HANDLER(Silence, HandleSetIsServer));
+	SubscribeToEvent(E_MODIFYCLIENTSILENCE, HANDLER(Silence, HandleModifySilence));
+	SubscribeToEvent(E_SETCLIENTID, HANDLER(Silence, HandleSetClientID));
+	SubscribeToEvent(E_SETCONNECTION, HANDLER(Silence, HandleSetConnection));
+
+	VariantMap vm0;
+	SendEvent(E_GETISSERVER, vm0);
+}
+
+void Silence::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
+{
+	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
 }
 
 void Silence::HandleGetSilence(StringHash eventType, VariantMap& eventData)
@@ -58,5 +72,107 @@ void Silence::HandleGetSilence(StringHash eventType, VariantMap& eventData)
 		vm[SetClientSilence::P_NODE] = clientNode;
 		vm[SetClientSilence::P_SILENCE] = silence_;
 		SendEvent(E_SETCLIENTSILENCE, vm);
+	}
+}
+
+void Silence::HandleSetClientID(StringHash eventType, VariantMap& eventData)
+{
+	Node* clientNode = (Node*)(eventData[SetClientID::P_NODE].GetPtr());
+
+	if (main_->GetSceneNode(clientNode) == node_)
+	{
+		clientID_ = eventData[SetClientID::P_CLIENTID].GetInt();
+
+		VariantMap vm;
+		vm[GetConnection::P_NODE] = main_->GetRootNode(node_);
+		SendEvent(E_GETCONNECTION, vm);
+
+	}
+}
+
+void Silence::HandleSetConnection(StringHash eventType, VariantMap& eventData)
+{
+	Node* clientNode = (Node*)(eventData[SetConnection::P_NODE].GetPtr());
+
+	if (main_->GetSceneNode(clientNode) == node_)
+	{
+		conn_ = (Connection*)(eventData[SetConnection::P_CONNECTION].GetPtr());
+
+		SubscribeToEvent(E_LCMSG, HANDLER(Silence, HandleLCMSG));
+		SubscribeToEvent(E_GETLC, HANDLER(Silence, HandleGetLc));
+	}
+}
+
+void Silence::HandleModifySilence(StringHash eventType, VariantMap& eventData)
+{
+	Node* clientNode = (Node*)(eventData[ModifyClientSpeed::P_NODE].GetPtr());
+
+	if (clientNode == node_)
+	{
+		bool state = eventData[ModifyClientSilence::P_STATE].GetBool();
+		bool sendToServer = eventData[ModifyClientSilence::P_SENDTOSERVER].GetBool();
+
+		ModifySilence(state, sendToServer);
+	}
+}
+
+void Silence::ModifySilence(bool state, bool sendToServer)
+{
+	silence_ = state;
+
+	if (sendToServer)
+	{
+		msg_.Clear();
+		msg_.WriteInt(clientID_);
+		msg_.WriteString("Silence");
+		msg_.WriteBool(state);
+		network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+	}
+}
+
+void Silence::HandleLCMSG(StringHash eventType, VariantMap& eventData)
+{
+	const PODVector<unsigned char>& data = eventData[LcMsg::P_DATA].GetBuffer();
+	MemoryBuffer msg(data);
+	int clientID = msg.ReadInt();
+	String lc = msg.ReadString();
+
+	if (lc == "Silence")
+	{
+		if (clientID_ == clientID)
+		{
+			bool state = msg.ReadBool();
+
+			ModifySilence(state, false);
+
+			if (isServer_)
+			{
+				msg_.Clear();
+				msg_.WriteInt(clientID_);
+				msg_.WriteString("Silence");
+				msg_.WriteBool(state);
+
+				VariantMap vm0;
+				vm0[ExclusiveNetBroadcast::P_EXCLUDEDCONNECTION] = conn_;
+				vm0[ExclusiveNetBroadcast::P_MSG] = msg_.GetBuffer();
+				SendEvent(E_EXCLUSIVENETBROADCAST, vm0);
+			}
+		}
+	}
+}
+
+void Silence::HandleGetLc(StringHash eventType, VariantMap& eventData)
+{
+	Node* clientNode = (Node*)(eventData[GetLc::P_NODE].GetPtr());
+
+	if (clientNode == node_)
+	{
+		Connection* conn = (Connection*)(eventData[GetLc::P_CONNECTION].GetPtr());
+
+		msg_.Clear();
+		msg_.WriteInt(clientID_);
+		msg_.WriteString("Silence");
+		msg_.WriteBool(silence_);
+		conn->SendMessage(MSG_LCMSG, true, true, msg_);
 	}
 }

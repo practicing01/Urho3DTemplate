@@ -31,6 +31,8 @@ public:
 	void AttachLogicComponents(SharedPtr<Node> sceneNode);
 	void HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData);
 	void HandleGetIsServer(StringHash eventType, VariantMap& eventData);
+	void HandleClientHealthSet(StringHash eventType, VariantMap& eventData);
+	void HandleSetSceneNodeClientID(StringHash eventType, VariantMap& eventData);
 
 	Urho3DPlayer* main_;
 
@@ -44,4 +46,7 @@ public:
     SharedPtr<Node> cameraNode_;
 
 	Vector< SharedPtr<Node> > spawnPoints_;
+
+	Node* targetSceneNode_;
+	int targetSceneNodeClientID_;
 };

@@ -25,8 +25,23 @@ public:
 	~Silence();
 	virtual void Start();
 	void HandleGetSilence(StringHash eventType, VariantMap& eventData);
+	void HandleSetIsServer(StringHash eventType, VariantMap& eventData);
+	void HandleSetClientID(StringHash eventType, VariantMap& eventData);
+	void HandleSetConnection(StringHash eventType, VariantMap& eventData);
+	void HandleLCMSG(StringHash eventType, VariantMap& eventData);
+	void HandleGetLc(StringHash eventType, VariantMap& eventData);
+	void HandleModifySilence(StringHash eventType, VariantMap& eventData);
+	void ModifySilence(bool state, bool sendToServer);
 
 	Urho3DPlayer* main_;
 
-	float silence_;
+	Network* network_;
+
+	VectorBuffer msg_;
+
+	bool isServer_;
+	int clientID_;
+	Connection* conn_;
+
+	bool silence_;
 };

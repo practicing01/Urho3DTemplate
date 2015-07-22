@@ -249,5 +249,18 @@ EVENT(E_MODIFYCLIENTHEALTH, ModifyClientHealth)
 	PARAM(P_SENDTOSERVER, SendToServer);// bool
 }
 
+EVENT(E_CLIENTHEALTHSET, ClientHealthSet)
+{
+	PARAM(P_NODE, Node);// node pointer
+	PARAM(P_HEALTH, Health);// int
+}
+
+EVENT(E_MODIFYCLIENTSILENCE, ModifyClientSilence)
+{
+	PARAM(P_NODE, Node);// node pointer
+	PARAM(P_STATE, State);// bool
+	PARAM(P_SENDTOSERVER, SendToServer);// bool
+}
+
 extern const int GAMEMODEMSG_RESPAWNNODE;
 extern const int GAMEMODEMSG_GETLC;
