@@ -49,7 +49,7 @@ void Blind::Start()
 {
 	SubscribeToEvent(E_GETCLIENTBLIND, HANDLER(Blind, HandleGetBlind));
 	SubscribeToEvent(E_SETISSERVER, HANDLER(Blind, HandleSetIsServer));
-	SubscribeToEvent(E_MODIFYCLIENTSILENCE, HANDLER(Blind, HandleModifyBlind));
+	SubscribeToEvent(E_MODIFYCLIENTBLIND, HANDLER(Blind, HandleModifyBlind));
 	SubscribeToEvent(E_SETCLIENTID, HANDLER(Blind, HandleSetClientID));
 	SubscribeToEvent(E_SETCONNECTION, HANDLER(Blind, HandleSetConnection));
 

@@ -1,5 +1,5 @@
 /*
- * Melee.cpp
+ * Crit.cpp
  *
  *  Created on: Jul 21, 2015
  *      Author: practicing01
@@ -32,12 +32,12 @@
 #include <Urho3D/Audio/Sound.h>
 #include <Urho3D/Audio/SoundSource3D.h>
 
-#include "Melee.h"
+#include "Crit.h"
 #include "../../../network/NetworkConstants.h"
 #include "../../../Constants.h"
 #include "TimedRemove.h"
 
-Melee::Melee(Context* context, Urho3DPlayer* main) :
+Crit::Crit(Context* context, Urho3DPlayer* main) :
 	LogicComponent(context)
 {
 	main_ = main;
@@ -47,14 +47,13 @@ Melee::Melee(Context* context, Urho3DPlayer* main) :
 	modelNode_ = NULL;
 	clientID_ = -1;
 	isServer_ = false;
-	damage_ = 10;
 }
 
-Melee::~Melee()
+Crit::~Crit()
 {
 }
 
-void Melee::Start()
+void Crit::Start()
 {
 	scene_ = node_->GetScene();
 
@@ -65,26 +64,26 @@ void Melee::Start()
 	emitterStartFX_->SetEmitting(false);
 	emitterStartFX_->SetViewMask(1);
 
-	SubscribeToEvent(E_SETISSERVER, HANDLER(Melee, HandleSetIsServer));
+	SubscribeToEvent(E_SETISSERVER, HANDLER(Crit, HandleSetIsServer));
 
 	VariantMap vm0;
 	SendEvent(E_GETISSERVER, vm0);
 
-	SubscribeToEvent(E_SETCLIENTMODELNODE, HANDLER(Melee, HandleSetClientModelNode));
+	SubscribeToEvent(E_SETCLIENTMODELNODE, HANDLER(Crit, HandleSetClientModelNode));
 
 	VariantMap vm;
 	vm[GetClientModelNode::P_NODE] = node_;
 	SendEvent(E_GETCLIENTMODELNODE, vm);
 
 	UnsubscribeFromEvent(E_SETCLIENTMODELNODE);
-	SubscribeToEvent(E_SETCLIENTID, HANDLER(Melee, HandleSetClientID));
+	SubscribeToEvent(E_SETCLIENTID, HANDLER(Crit, HandleSetClientID));
 
 	VariantMap vm1;
 	vm1[GetClientID::P_NODE] = main_->GetRootNode(node_);
 	SendEvent(E_GETCLIENTID, vm1);
 
 	UnsubscribeFromEvent(E_SETCLIENTID);
-	SubscribeToEvent(E_SETCONNECTION, HANDLER(Melee, HandleSetConnection));
+	SubscribeToEvent(E_SETCONNECTION, HANDLER(Crit, HandleSetConnection));
 
 	VariantMap vm2;
 	vm2[GetConnection::P_NODE] = main_->GetRootNode(node_);
@@ -92,20 +91,20 @@ void Melee::Start()
 
 	UnsubscribeFromEvent(E_SETCONNECTION);
 
-	SubscribeToEvent(E_LCMSG, HANDLER(Melee, HandleLCMSG));
+	SubscribeToEvent(E_LCMSG, HANDLER(Crit, HandleLCMSG));
 
 	if (main_->IsLocalClient(node_))
 	{
-		SubscribeToEvent(E_MECHANICREQUEST, HANDLER(Melee, HandleMechanicRequest));
+		SubscribeToEvent(E_MECHANICREQUEST, HANDLER(Crit, HandleMechanicRequest));
 	}
 }
 
-void Melee::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
+void Crit::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 {
 	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
 }
 
-void Melee::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData)
+void Crit::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetClientModelNode::P_NODE].GetPtr());
 
@@ -119,7 +118,7 @@ void Melee::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData
 	}
 }
 
-void Melee::HandleSetClientID(StringHash eventType, VariantMap& eventData)
+void Crit::HandleSetClientID(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetClientID::P_NODE].GetPtr());
 
@@ -129,7 +128,7 @@ void Melee::HandleSetClientID(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Melee::HandleSetConnection(StringHash eventType, VariantMap& eventData)
+void Crit::HandleSetConnection(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetConnection::P_NODE].GetPtr());
 
@@ -139,13 +138,13 @@ void Melee::HandleSetConnection(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Melee::HandleMechanicRequest(StringHash eventType, VariantMap& eventData)
+void Crit::HandleMechanicRequest(StringHash eventType, VariantMap& eventData)
 {
 	String mechanicID = eventData[MechanicRequest::P_MECHANICID].GetString();
 
-	if (mechanicID == "Melee")
+	if (mechanicID == "Crit")
 	{
-		SubscribeToEvent(E_SETCLIENTBLIND, HANDLER(Melee, HandleSetBlind));
+		SubscribeToEvent(E_SETCLIENTBLIND, HANDLER(Crit, HandleSetBlind));
 
 		if (!clientExecuting_)
 		{
@@ -158,15 +157,15 @@ void Melee::HandleMechanicRequest(StringHash eventType, VariantMap& eventData)
 				clientExecuting_ = true;
 				elapsedTime_ = 0.0f;
 
-				StartMelee(modelNode_->GetPosition(), true);
+				StartCrit(modelNode_->GetPosition(), true);
 
-				SubscribeToEvent(E_UPDATE, HANDLER(Melee, HandleUpdate));
+				SubscribeToEvent(E_UPDATE, HANDLER(Crit, HandleUpdate));
 			}
 		}
 	}
 }
 
-void Melee::HandleSetBlind(StringHash eventType, VariantMap& eventData)
+void Crit::HandleSetBlind(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetClientSilence::P_NODE].GetPtr());
 
@@ -178,7 +177,7 @@ void Melee::HandleSetBlind(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Melee::HandleSetArmor(StringHash eventType, VariantMap& eventData)
+void Crit::HandleSetArmor(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[SetClientArmor::P_NODE].GetPtr());
 
@@ -190,7 +189,19 @@ void Melee::HandleSetArmor(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Melee::StartMelee(Vector3 pos, bool sendToServer)
+void Crit::HandleSetHealth(StringHash eventType, VariantMap& eventData)
+{
+	Node* clientNode = (Node*)(eventData[SetClientHealth::P_NODE].GetPtr());
+
+	if (clientNode == targetSceneNode_)
+	{
+		targetHealth_ = eventData[SetClientHealth::P_HEALTH].GetInt();
+
+		UnsubscribeFromEvent(E_SETCLIENTHEALTH);
+	}
+}
+
+void Crit::StartCrit(Vector3 pos, bool sendToServer)
 {
 	VariantMap vm;
 	vm[AnimateSceneNode::P_NODE] = node_;
@@ -222,7 +233,7 @@ void Melee::StartMelee(Vector3 pos, bool sendToServer)
 					SharedPtr<Node> particleEndNode = SharedPtr<Node>(scene_->CreateChild(0,LOCAL));
 					particleEndNode->SetPosition(victoria_);
 					ParticleEmitter* emitterEndFX = particleEndNode->CreateComponent<ParticleEmitter>(LOCAL);
-					emitterEndFX->SetEffect(main_->cache_->GetResource<ParticleEffect>("Particle/blood.xml"));
+					emitterEndFX->SetEffect(main_->cache_->GetResource<ParticleEffect>("Particle/crit.xml"));
 					particleEndNode->SetWorldScale(Vector3::ONE);
 					emitterEndFX->SetEmitting(true);
 					emitterEndFX->SetViewMask(1);
@@ -232,7 +243,7 @@ void Melee::StartMelee(Vector3 pos, bool sendToServer)
 
 				targetModelNode_ = noed;
 				//Get target scene node.
-				SubscribeToEvent(E_SETSCENENODEBYMODELNODE, HANDLER(Melee, HandleSetSceneNodeByModelNode));
+				SubscribeToEvent(E_SETSCENENODEBYMODELNODE, HANDLER(Crit, HandleSetSceneNodeByModelNode));
 
 				VariantMap vm0;
 				vm0[GetSceneNodeByModelNode::P_NODE] = targetModelNode_;
@@ -241,13 +252,21 @@ void Melee::StartMelee(Vector3 pos, bool sendToServer)
 				UnsubscribeFromEvent(E_SETSCENENODEBYMODELNODE);
 
 				//Get target armor.
-				SubscribeToEvent(E_SETCLIENTARMOR, HANDLER(Melee, HandleSetArmor));
+				SubscribeToEvent(E_SETCLIENTARMOR, HANDLER(Crit, HandleSetArmor));
 
 				VariantMap vm2;
 				vm2[GetClientArmor::P_NODE] = targetSceneNode_;
 				SendEvent(E_GETCLIENTARMOR, vm2);
 
-				int damage = damage_ - targetArmor_;
+				//Get target health.
+				SubscribeToEvent(E_SETCLIENTHEALTH, HANDLER(Crit, HandleSetHealth));
+
+				VariantMap vm3;
+				vm3[GetClientHealth::P_NODE] = targetSceneNode_;
+				SendEvent(E_GETCLIENTHEALTH, vm3);
+
+				int damage = (int)( (targetHealth_ * 0.25f) - targetArmor_ );
+
 
 				if (damage > 0)
 				{
@@ -266,13 +285,13 @@ void Melee::StartMelee(Vector3 pos, bool sendToServer)
 	{
 		msg_.Clear();
 		msg_.WriteInt(clientID_);
-		msg_.WriteString("Melee");
+		msg_.WriteString("Crit");
 		msg_.WriteVector3(pos);
 		network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
 	}
 }
 
-void Melee::HandleSetSceneNodeByModelNode(StringHash eventType, VariantMap& eventData)
+void Crit::HandleSetSceneNodeByModelNode(StringHash eventType, VariantMap& eventData)
 {
 	Node* modelNode = (Node*)(eventData[SetSceneNodeByModelNode::P_MODELNODE].GetPtr());
 
@@ -282,7 +301,7 @@ void Melee::HandleSetSceneNodeByModelNode(StringHash eventType, VariantMap& even
 	}
 }
 
-void Melee::HandleUpdate(StringHash eventType, VariantMap& eventData)
+void Crit::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
 	float timeStep = eventData[Update::P_TIMESTEP].GetFloat();
 
@@ -293,26 +312,26 @@ void Melee::HandleUpdate(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Melee::HandleLCMSG(StringHash eventType, VariantMap& eventData)
+void Crit::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 {
 	const PODVector<unsigned char>& data = eventData[LcMsg::P_DATA].GetBuffer();
 	MemoryBuffer msg(data);
 	int clientID = msg.ReadInt();
 	String lc = msg.ReadString();
 
-	if (lc == "Melee")
+	if (lc == "Crit")
 	{
 		if (clientID_ == clientID)
 		{
 			Vector3 pos = msg.ReadVector3();
 
-			StartMelee(pos, false);
+			StartCrit(pos, false);
 
 			if (isServer_)
 			{
 				msg_.Clear();
 				msg_.WriteInt(clientID_);
-				msg_.WriteString("Melee");
+				msg_.WriteString("Crit");
 				msg_.WriteVector3(pos);
 
 				VariantMap vm0;
