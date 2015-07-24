@@ -61,6 +61,7 @@ public:
     void RemoveRootNode(SharedPtr<Node>);
     Node* GetSceneNode(int clientID);//todo replace these with events system
     Node* GetSceneNode(Node* rootNode);
+    int GetClientID(Node* sceneNode);
     bool IsLocalClient(Node* sceneNode);
     void RecursiveAddGuiTargets(UIElement* ele);
     void ClearRootNodes();

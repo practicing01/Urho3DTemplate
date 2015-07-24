@@ -354,3 +354,15 @@ void Urho3DPlayer::ClearRootNodes()
 
 	rootNodes_.Push(myRootNode);
 }
+
+int Urho3DPlayer::GetClientID(Node* sceneNode)
+{
+	for (int x = 0; x < sceneNodes_.Size(); x++)
+	{
+		if (sceneNodes_[x] == sceneNode)
+		{
+			return rootNodes_[x]->GetComponent<ClientInfo>()->clientID_;
+		}
+	}
+	return -1;
+}
