@@ -40,4 +40,7 @@ public:
 
 	float duration_;
 	float elapsedTime_;
+
+	float interval_;
+	float intervalElapsedTime_;
 };

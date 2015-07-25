@@ -43,6 +43,8 @@ LCTarget::LCTarget(Context* context) :
 {
 	elapsedTime_ = 0.0f;
 	duration_ = 0.0f;
+	interval_ = 0.0f;
+	intervalElapsedTime_ = 0.0f;
 }
 
 LCTarget::~LCTarget()
