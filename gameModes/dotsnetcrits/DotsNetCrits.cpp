@@ -54,6 +54,8 @@
 #include "logicComponents/AOE.h"
 #include "logicComponents/AOEHeal.h"
 #include "logicComponents/Cloak.h"
+#include "logicComponents/Cleanse.h"
+#include "logicComponents/Knockback.h"
 
 DotsNetCrits::DotsNetCrits(Context* context, Urho3DPlayer* main, bool isServer) :
 	LogicComponent(context)
@@ -285,6 +287,10 @@ void DotsNetCrits::AttachLogicComponents(SharedPtr<Node> sceneNode)
 	sceneNode->AddComponent(new AOEHeal(context_, main_), 0, LOCAL);
 
 	sceneNode->AddComponent(new Cloak(context_, main_), 0, LOCAL);
+
+	sceneNode->AddComponent(new Cleanse(context_, main_), 0, LOCAL);
+
+	sceneNode->AddComponent(new Knockback(context_, main_), 0, LOCAL);
 }
 
 void DotsNetCrits::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData)

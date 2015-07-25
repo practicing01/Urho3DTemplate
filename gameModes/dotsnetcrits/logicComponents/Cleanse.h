@@ -1,7 +1,7 @@
 /*
- * Snare.h
+ * Cleanse.h
  *
- *  Created on: Jul 20, 2015
+ *  Created on: Jul 23, 2015
  *      Author: practicing01
  */
 
@@ -21,12 +21,12 @@
 
 using namespace Urho3D;
 
-class Snare : public LogicComponent
+class Cleanse : public LogicComponent
 {
-	OBJECT(Snare);
+	OBJECT(Cleanse);
 public:
-	Snare(Context* context, Urho3DPlayer* main);
-	~Snare();
+	Cleanse(Context* context, Urho3DPlayer* main);
+	~Cleanse();
 	virtual void Start();
 	void HandleUpdate(StringHash eventType, VariantMap& eventData);
 	void HandleMechanicRequest(StringHash eventType, VariantMap& eventData);
@@ -35,10 +35,7 @@ public:
 	void HandleTouchEnd(StringHash eventType, VariantMap& eventData);
 	void HandleGetLc(StringHash eventType, VariantMap& eventData);
 	void Exec(int clientID, float timeRamp, bool sendToServer);
-    void HandleCleanse(StringHash eventType, VariantMap& eventData);
 
 	LC* lc_;
 	Vector<LCTarget*> targets_;
-
-	float snare_;
 };

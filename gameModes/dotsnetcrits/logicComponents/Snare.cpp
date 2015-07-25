@@ -74,6 +74,7 @@ void Snare::Start()
 
 	SubscribeToEvent(E_LCMSG, HANDLER(Snare, HandleLCMSG));
 	SubscribeToEvent(E_GETLC, HANDLER(Snare, HandleGetLc));
+	SubscribeToEvent(E_CLEANSE, HANDLER(Snare, HandleCleanse));
 
 	if (lc_->main_->IsLocalClient(node_))
 	{
@@ -329,6 +330,37 @@ void Snare::HandleGetLc(StringHash eventType, VariantMap& eventData)
 			lc_->msg_.WriteInt(targets_[x]->clientID_);
 			lc_->msg_.WriteFloat(timeRamp);
 			conn->SendMessage(MSG_LCMSG, true, true, lc_->msg_);
+		}
+	}
+}
+
+void Snare::HandleCleanse(StringHash eventType, VariantMap& eventData)
+{
+	Node* sceneNode = (Node*)(eventData[CleanseStatus::P_NODE].GetPtr());
+
+	int targetCount = targets_.Size();
+
+	for (int x = 0; x < targetCount; x++)
+	{
+		if (targets_[x]->sceneNode_ >= sceneNode)
+		{
+			VariantMap vm;
+			vm[ModifyClientSpeed::P_NODE] = targets_[x]->sceneNode_;
+			vm[ModifyClientSpeed::P_SPEED] = snare_;
+			vm[ModifyClientSpeed::P_OPERATION] = 1;
+			vm[ModifyClientSpeed::P_SENDTOSERVER] = false;
+			SendEvent(E_MODIFYCLIENTSPEED, vm);
+
+			if (!lc_->isServer_)
+			{
+				targets_[x]->particleEndNode_->Remove();
+			}
+
+			LCTarget* target = targets_[x];
+			targets_.Remove(target);
+			delete target;
+			x--;
+			targetCount = targets_.Size();
 		}
 	}
 }

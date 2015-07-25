@@ -35,6 +35,8 @@ ModelPlayer::~ModelPlayer()
 {
 	if (modelNode_ != NULL)
 	{
+		modelNode_->RemoveAllChildren();
+		modelNode_->RemoveAllComponents();
 		modelNode_->Remove();
 	}
 }

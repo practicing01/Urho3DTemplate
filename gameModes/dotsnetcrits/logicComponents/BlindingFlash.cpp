@@ -72,6 +72,7 @@ void BlindingFlash::Start()
 
 	SubscribeToEvent(E_LCMSG, HANDLER(BlindingFlash, HandleLCMSG));
 	SubscribeToEvent(E_GETLC, HANDLER(BlindingFlash, HandleGetLc));
+	SubscribeToEvent(E_CLEANSE, HANDLER(BlindingFlash, HandleCleanse));
 
 	if (lc_->main_->IsLocalClient(node_))
 	{
@@ -325,6 +326,36 @@ void BlindingFlash::HandleGetLc(StringHash eventType, VariantMap& eventData)
 			lc_->msg_.WriteInt(targets_[x]->clientID_);
 			lc_->msg_.WriteFloat(timeRamp);
 			conn->SendMessage(MSG_LCMSG, true, true, lc_->msg_);
+		}
+	}
+}
+
+void BlindingFlash::HandleCleanse(StringHash eventType, VariantMap& eventData)
+{
+	Node* sceneNode = (Node*)(eventData[CleanseStatus::P_NODE].GetPtr());
+
+	int targetCount = targets_.Size();
+
+	for (int x = 0; x < targetCount; x++)
+	{
+		if (targets_[x]->sceneNode_ >= sceneNode)
+		{
+			VariantMap vm;
+			vm[ModifyClientBlind::P_NODE] = targets_[x]->sceneNode_;
+			vm[ModifyClientBlind::P_STATE] = false;
+			vm[ModifyClientBlind::P_SENDTOSERVER] = false;
+			SendEvent(E_MODIFYCLIENTBLIND, vm);
+
+			if (!lc_->isServer_)
+			{
+				targets_[x]->particleEndNode_->Remove();
+			}
+
+			LCTarget* target = targets_[x];
+			targets_.Remove(target);
+			delete target;
+			x--;
+			targetCount = targets_.Size();
 		}
 	}
 }

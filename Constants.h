@@ -288,5 +288,23 @@ EVENT(E_MODIFYCLIENTARMOR, ModifyClientArmor)
 	PARAM(P_SENDTOSERVER, SendToServer);// bool
 }
 
+EVENT(E_CLEANSE, CleanseStatus)
+{
+	PARAM(P_NODE, Node);// node pointer
+}
+
+EVENT(E_MOVEMODELNODE, MoveModelNode)
+{
+	PARAM(P_NODE, Node);// node pointer
+	PARAM(P_DEST, Dest);// Vector3
+	PARAM(P_SPEED, Speed);// float
+	PARAM(P_SPEEDRAMP, SpeedRamp);// float
+	PARAM(P_GRAVITY, Gravity);// float
+	PARAM(P_GRAVITYRAMP, GravityRamp);// float
+	PARAM(P_STOPONCOMPLETION, StopOnCompletion);// bool
+	PARAM(P_ROTATE, Rotate);// bool
+	PARAM(P_SENDTOSERVER, SendToServer);// bool
+}
+
 extern const int GAMEMODEMSG_RESPAWNNODE;
 extern const int GAMEMODEMSG_GETLC;

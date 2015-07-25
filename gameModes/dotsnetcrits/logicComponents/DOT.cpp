@@ -74,6 +74,7 @@ void DOT::Start()
 
 	SubscribeToEvent(E_LCMSG, HANDLER(DOT, HandleLCMSG));
 	SubscribeToEvent(E_GETLC, HANDLER(DOT, HandleGetLc));
+	SubscribeToEvent(E_CLEANSE, HANDLER(DOT, HandleCleanse));
 
 	if (lc_->main_->IsLocalClient(node_))
 	{
@@ -360,5 +361,29 @@ void DOT::HandleSetArmor(StringHash eventType, VariantMap& eventData)
 		targetArmor_ = eventData[SetClientArmor::P_ARMOR].GetInt();
 
 		UnsubscribeFromEvent(E_SETCLIENTARMOR);
+	}
+}
+
+void DOT::HandleCleanse(StringHash eventType, VariantMap& eventData)
+{
+	Node* sceneNode = (Node*)(eventData[CleanseStatus::P_NODE].GetPtr());
+
+	int targetCount = targets_.Size();
+
+	for (int x = 0; x < targetCount; x++)
+	{
+		if (targets_[x]->sceneNode_ >= sceneNode)
+		{
+			if (!lc_->isServer_)
+			{
+				targets_[x]->particleEndNode_->Remove();
+			}
+
+			LCTarget* target = targets_[x];
+			targets_.Remove(target);
+			delete target;
+			x--;
+			targetCount = targets_.Size();
+		}
 	}
 }

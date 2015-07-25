@@ -1,7 +1,7 @@
 /*
- * Mute.cpp
+ * Cleanse.cpp
  *
- *  Created on: Jul 22, 2015
+ *  Created on: Jul 23, 2015
  *      Author: practicing01
  */
 
@@ -32,23 +32,22 @@
 #include <Urho3D/Audio/Sound.h>
 #include <Urho3D/Audio/SoundSource3D.h>
 
-#include "Mute.h"
+#include "Cleanse.h"
 #include "../../../network/NetworkConstants.h"
 #include "../../../Constants.h"
 
 #include "LC.h"
 #include "LCTarget.h"
 
-Mute::Mute(Context* context, Urho3DPlayer* main) :
+Cleanse::Cleanse(Context* context, Urho3DPlayer* main) :
 	LogicComponent(context)
 {
 	lc_ = new LC(context, main, main->network_);
 
 	SetUpdateEventMask(USE_UPDATE);
-	//SubscribeToEvent(E_CLEANSESTATUS, HANDLER(Mute, HandleCleanseStatus));
 }
 
-Mute::~Mute()
+Cleanse::~Cleanse()
 {
 	if (lc_->clientExecuting_)
 	{
@@ -64,29 +63,28 @@ Mute::~Mute()
 	delete lc_;
 }
 
-void Mute::Start()
+void Cleanse::Start()
 {
 	lc_->Start(node_);
 
 	lc_->cooldown_ = 10.0f;
 
-	SubscribeToEvent(E_LCMSG, HANDLER(Mute, HandleLCMSG));
-	SubscribeToEvent(E_GETLC, HANDLER(Mute, HandleGetLc));
-	SubscribeToEvent(E_CLEANSE, HANDLER(Mute, HandleCleanse));
+	SubscribeToEvent(E_LCMSG, HANDLER(Cleanse, HandleLCMSG));
+	SubscribeToEvent(E_GETLC, HANDLER(Cleanse, HandleGetLc));
 
 	if (lc_->main_->IsLocalClient(node_))
 	{
-		SubscribeToEvent(E_MECHANICREQUEST, HANDLER(Mute, HandleMechanicRequest));
+		SubscribeToEvent(E_MECHANICREQUEST, HANDLER(Cleanse, HandleMechanicRequest));
 	}
 }
 
-void Mute::HandleMechanicRequest(StringHash eventType, VariantMap& eventData)
+void Cleanse::HandleMechanicRequest(StringHash eventType, VariantMap& eventData)
 {
 	String mechanicID = eventData[MechanicRequest::P_MECHANICID].GetString();
 
-	if (mechanicID == "Silence")
+	if (mechanicID == "Cleanse")
 	{
-		SubscribeToEvent(E_SETCLIENTSILENCE, HANDLER(Mute, HandleSetEnabled));
+		SubscribeToEvent(E_SETCLIENTSILENCE, HANDLER(Cleanse, HandleSetEnabled));
 
 		VariantMap vm;
 		vm[GetClientSilence::P_NODE] = node_;
@@ -94,7 +92,7 @@ void Mute::HandleMechanicRequest(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Mute::HandleSetEnabled(StringHash eventType, VariantMap& eventData)
+void Cleanse::HandleSetEnabled(StringHash eventType, VariantMap& eventData)
 {
 	Node* sceneNode = (Node*)(eventData[SetClientSilence::P_NODE].GetPtr());
 
@@ -112,12 +110,12 @@ void Mute::HandleSetEnabled(StringHash eventType, VariantMap& eventData)
 			VariantMap vm;
 			SendEvent(E_TOUCHSUBSCRIBE, vm);
 
-			SubscribeToEvent(E_TOUCHEND, HANDLER(Mute, HandleTouchEnd));
+			SubscribeToEvent(E_TOUCHEND, HANDLER(Cleanse, HandleTouchEnd));
 		}
 	}
 }
 
-void Mute::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
+void Cleanse::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
 {
 	if (lc_->main_->ui_->GetFocusElement())
 	{
@@ -160,7 +158,7 @@ void Mute::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Mute::Exec(int clientID, float timeRamp, bool sendToServer)
+void Cleanse::Exec(int clientID, float timeRamp, bool sendToServer)
 {
 	LCTarget* target = new LCTarget(context_);
 	targets_.Push(target);
@@ -177,7 +175,7 @@ void Mute::Exec(int clientID, float timeRamp, bool sendToServer)
 	{
 		target->particleEndNode_ = lc_->scene_->CreateChild(0,LOCAL);
 		target->emitterEndFX_ = target->particleEndNode_->CreateComponent<ParticleEmitter>(LOCAL);
-		target->emitterEndFX_->SetEffect(lc_->main_->cache_->GetResource<ParticleEffect>("Particle/silence.xml"));
+		target->emitterEndFX_->SetEffect(lc_->main_->cache_->GetResource<ParticleEffect>("Particle/cleanse.xml"));
 		target->particleEndNode_->SetWorldScale(Vector3::ONE * 500.0f);
 		target->emitterEndFX_->SetViewMask(1);
 
@@ -203,25 +201,23 @@ void Mute::Exec(int clientID, float timeRamp, bool sendToServer)
 	SendEvent(E_ANIMATESCENENODE, vm);
 
 	vm.Clear();
-	vm[ModifyClientSilence::P_NODE] = target->sceneNode_;
-	vm[ModifyClientSilence::P_STATE] = true;
-	vm[ModifyClientSilence::P_SENDTOSERVER] = false;
-	SendEvent(E_MODIFYCLIENTSILENCE, vm);
+	vm[CleanseStatus::P_NODE] = target->sceneNode_;
+	SendEvent(E_CLEANSE, vm);
 
 	if (sendToServer)
 	{
 		lc_->msg_.Clear();
 		lc_->msg_.WriteInt(lc_->clientID_);
-		lc_->msg_.WriteString("Mute");
+		lc_->msg_.WriteString("Cleanse");
 		lc_->msg_.WriteInt(target->clientID_);
 		lc_->msg_.WriteFloat(timeRamp);
 		lc_->network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, lc_->msg_);
 	}
 
-	SubscribeToEvent(E_UPDATE, HANDLER(Mute, HandleUpdate));
+	SubscribeToEvent(E_UPDATE, HANDLER(Cleanse, HandleUpdate));
 }
 
-void Mute::HandleUpdate(StringHash eventType, VariantMap& eventData)
+void Cleanse::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
 	float timeStep = eventData[Update::P_TIMESTEP].GetFloat();
 
@@ -239,12 +235,6 @@ void Mute::HandleUpdate(StringHash eventType, VariantMap& eventData)
 
 		if (targets_[x]->elapsedTime_ >= targets_[x]->duration_)
 		{
-			VariantMap vm;
-			vm[ModifyClientSilence::P_NODE] = targets_[x]->sceneNode_;
-			vm[ModifyClientSilence::P_STATE] = false;
-			vm[ModifyClientSilence::P_SENDTOSERVER] = false;
-			SendEvent(E_MODIFYCLIENTSILENCE, vm);
-
 			if (!lc_->isServer_)
 			{
 				targets_[x]->particleEndNode_->Remove();
@@ -264,14 +254,14 @@ void Mute::HandleUpdate(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Mute::HandleLCMSG(StringHash eventType, VariantMap& eventData)
+void Cleanse::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 {
 	const PODVector<unsigned char>& data = eventData[LcMsg::P_DATA].GetBuffer();
 	MemoryBuffer msg(data);
 	int clientID = msg.ReadInt();
 	String lc = msg.ReadString();
 
-	if (lc == "Mute")
+	if (lc == "Cleanse")
 	{
 		if (lc_->clientID_ == clientID)
 		{
@@ -288,7 +278,7 @@ void Mute::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 			{
 				lc_->msg_.Clear();
 				lc_->msg_.WriteInt(lc_->clientID_);
-				lc_->msg_.WriteString("Mute");
+				lc_->msg_.WriteString("Cleanse");
 				lc_->msg_.WriteInt(clientID);
 				lc_->msg_.WriteFloat(timeRamp);
 
@@ -301,7 +291,7 @@ void Mute::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Mute::HandleGetLc(StringHash eventType, VariantMap& eventData)
+void Cleanse::HandleGetLc(StringHash eventType, VariantMap& eventData)
 {
 	Node* sceneNode = (Node*)(eventData[GetLc::P_NODE].GetPtr());
 
@@ -322,40 +312,10 @@ void Mute::HandleGetLc(StringHash eventType, VariantMap& eventData)
 
 			lc_->msg_.Clear();
 			lc_->msg_.WriteInt(lc_->clientID_);
-			lc_->msg_.WriteString("Mute");
+			lc_->msg_.WriteString("Cleanse");
 			lc_->msg_.WriteInt(targets_[x]->clientID_);
 			lc_->msg_.WriteFloat(timeRamp);
 			conn->SendMessage(MSG_LCMSG, true, true, lc_->msg_);
-		}
-	}
-}
-
-void Mute::HandleCleanse(StringHash eventType, VariantMap& eventData)
-{
-	Node* sceneNode = (Node*)(eventData[CleanseStatus::P_NODE].GetPtr());
-
-	int targetCount = targets_.Size();
-
-	for (int x = 0; x < targetCount; x++)
-	{
-		if (targets_[x]->sceneNode_ >= sceneNode)
-		{
-			VariantMap vm;
-			vm[ModifyClientSilence::P_NODE] = targets_[x]->sceneNode_;
-			vm[ModifyClientSilence::P_STATE] = false;
-			vm[ModifyClientSilence::P_SENDTOSERVER] = false;
-			SendEvent(E_MODIFYCLIENTSILENCE, vm);
-
-			if (!lc_->isServer_)
-			{
-				targets_[x]->particleEndNode_->Remove();
-			}
-
-			LCTarget* target = targets_[x];
-			targets_.Remove(target);
-			delete target;
-			x--;
-			targetCount = targets_.Size();
 		}
 	}
 }

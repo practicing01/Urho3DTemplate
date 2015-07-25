@@ -33,9 +33,9 @@ public:
 	void HandleSetEnabled(StringHash eventType, VariantMap& eventData);
 	void HandleLCMSG(StringHash eventType, VariantMap& eventData);
 	void HandleTouchEnd(StringHash eventType, VariantMap& eventData);
-    void HandleCleanseStatus(StringHash eventType, VariantMap& eventData);
 	void HandleGetLc(StringHash eventType, VariantMap& eventData);
 	void Exec(int clientID, float timeRamp, bool sendToServer);
+    void HandleCleanse(StringHash eventType, VariantMap& eventData);
 
 	LC* lc_;
 	Vector<LCTarget*> targets_;

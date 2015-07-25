@@ -58,13 +58,14 @@ void MoveByTouch::Start()
 	SubscribeToEvent(E_TOUCHSUBSCRIBE, HANDLER(MoveByTouch, HandleTouchSubscribe));
 	SubscribeToEvent(E_TOUCHUNSUBSCRIBE, HANDLER(MoveByTouch, HandleTouchUnSubscribe));
 	SubscribeToEvent(E_SETISSERVER, HANDLER(MoveByTouch, HandleSetIsServer));
+	SubscribeToEvent(E_MOVEMODELNODE, HANDLER(MoveByTouch, HandleMoveModelNode));
 
-	VariantMap vm0;
-	SendEvent(E_GETISSERVER, vm0);
+	VariantMap vm;
+	SendEvent(E_GETISSERVER, vm);
 
 	SubscribeToEvent(E_SETCLIENTCAMERA, HANDLER(MoveByTouch, HandleSetCamera));
 
-	VariantMap vm;
+	vm.Clear();
 	vm[GetClientCamera::P_NODE] = node_;
 	SendEvent(E_GETCLIENTCAMERA, vm);
 
@@ -230,7 +231,7 @@ void MoveByTouch::HandleSetGravity(StringHash eventType, VariantMap& eventData)
 
 		UnsubscribeFromEvent(E_SETCLIENTGRAVITY);
 
-		MoveTo(moveToVector_, clientSpeed_, clientSpeed_, clientGravity_, clientGravity_, true, true);
+		MoveTo(moveToVector_, clientSpeed_, clientSpeed_, clientGravity_, clientGravity_, true, true, true);
 	}
 }
 
@@ -249,9 +250,21 @@ void MoveByTouch::FixedUpdate(float timeStep)
 				}
 			}
 
+			if (gravityRamp_ > gravity_)
+			{
+				gravityRamp_ -= timeStep;
+				if (gravityRamp_ < gravity_)
+				{
+					gravityRamp_ = gravity_;
+				}
+			}
+
 			inderp_ = speedRamp_ * timeStep;
 			moveToLoc_ =  modelNode_->GetPosition();
-			moveToDest_.y_ = moveToLoc_.y_;
+			if (rotate_)
+			{
+				moveToDest_.y_ = moveToLoc_.y_;
+			}
 			remainingDist_ = (moveToLoc_ - moveToDest_).Length();
 
 			victoria_ = moveToLoc_.Lerp(moveToDest_, inderp_ / remainingDist_);
@@ -265,30 +278,29 @@ void MoveByTouch::FixedUpdate(float timeStep)
 			}
 		}
 
-		//todo fix gravity unsynch from server (need gravity ramp)
 		moveToLoc_ = modelNode_->GetPosition();
 
 		raeResult_.body_ = NULL;
 		rae_.origin_ = modelNode_->LocalToWorld(modelNode_->GetComponent<CollisionShape>()->GetPosition());
 		rae_.direction_ = Vector3::DOWN;//todo change for games that might behave differently.
 
-		scene_->GetComponent<PhysicsWorld>()->SphereCast(raeResult_, rae_, radius_, Abs(gravity_ * timeStep), 1);//todo define masks.
+		scene_->GetComponent<PhysicsWorld>()->SphereCast(raeResult_, rae_, radius_, Abs(gravityRamp_ * timeStep), 1);//todo define masks.
 
 		if (!raeResult_.body_)
 		{
-			modelNode_->SetPosition(moveToLoc_ + (rae_.direction_ * Abs(gravity_ * timeStep) ) );//todo can't Abs if a gm with negative gravity exists
+			modelNode_->SetPosition(moveToLoc_ + (rae_.direction_ * Abs(gravityRamp_ * timeStep) ) );//todo can't Abs if a gm with negative gravity exists
 		}
 	}
 }
 
-void MoveByTouch::MoveTo(Vector3 dest, float speed, float speedRamp, float gravity, float gravityRamp, bool stopOnCompletion, bool sendToServer)
+void MoveByTouch::MoveTo(Vector3 dest, float speed, float speedRamp, float gravity, float gravityRamp, bool stopOnCompletion, bool rotate, bool sendToServer)
 {
-	VariantMap vm0;
-	vm0[AnimateSceneNode::P_NODE] = node_;
-	vm0[AnimateSceneNode::P_ANIMATION] = "run";
-	vm0[AnimateSceneNode::P_LOOP] = true;
-	vm0[AnimateSceneNode::P_LAYER] = 0;
-	SendEvent(E_ANIMATESCENENODE, vm0);
+	VariantMap vm;
+	vm[AnimateSceneNode::P_NODE] = node_;
+	vm[AnimateSceneNode::P_ANIMATION] = "run";
+	vm[AnimateSceneNode::P_LOOP] = true;
+	vm[AnimateSceneNode::P_LAYER] = 0;
+	SendEvent(E_ANIMATESCENENODE, vm);
 
 	moveToSpeed_ = speed;
 	speedRamp_ = speedRamp;
@@ -296,7 +308,11 @@ void MoveByTouch::MoveTo(Vector3 dest, float speed, float speedRamp, float gravi
 	gravityRamp_ = gravityRamp;
 	moveToLoc_ = modelNode_->GetPosition();
 	moveToDest_ = dest;
-	moveToDest_.y_ = moveToLoc_.y_;
+	rotate_ = rotate;
+	if (rotate)
+	{
+		moveToDest_.y_ = moveToLoc_.y_;
+	}
 	moveToDir_ = dest - moveToLoc_;
 	moveToDir_.Normalize();
 	moveToTravelTime_ = (moveToDest_ - moveToLoc_).Length() / speed;
@@ -323,13 +339,16 @@ void MoveByTouch::MoveTo(Vector3 dest, float speed, float speedRamp, float gravi
 	quarterPounder_ = modelNode_->GetRotation();
 	modelNode_->SetRotation(quarterOnion_);
 
-	VariantMap vm;
-	vm[RotateModelNode::P_NODE] = node_;
-	vm[RotateModelNode::P_ROTATION] = quarterPounder_;
-	vm[RotateModelNode::P_SPEED] = 4.0f;
-	vm[RotateModelNode::P_SPEEDRAMP] = 4.0f;
-	vm[RotateModelNode::P_STOPONCOMPLETION] = true;
-	SendEvent(E_ROTATEMODELNODE, vm);
+	if (rotate)
+	{
+		vm.Clear();
+		vm[RotateModelNode::P_NODE] = node_;
+		vm[RotateModelNode::P_ROTATION] = quarterPounder_;
+		vm[RotateModelNode::P_SPEED] = 4.0f;
+		vm[RotateModelNode::P_SPEEDRAMP] = 4.0f;
+		vm[RotateModelNode::P_STOPONCOMPLETION] = true;
+		SendEvent(E_ROTATEMODELNODE, vm);
+	}
 
 	if (sendToServer)
 	{
@@ -430,7 +449,7 @@ void MoveByTouch::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 
 			modelNode_->SetPosition(loc);
 
-			MoveTo(dest, speed, speedRamp, gravity, gravityRamp, stopOnTime, false);
+			MoveTo(dest, speed, speedRamp, gravity, gravityRamp, stopOnTime, true, false);
 
 			if (isServer_)
 			{
@@ -446,10 +465,10 @@ void MoveByTouch::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 				msg_.WriteFloat(gravityRamp_);
 				msg_.WriteBool(moveToStopOnTime_);
 
-				VariantMap vm0;
-				vm0[ExclusiveNetBroadcast::P_EXCLUDEDCONNECTION] = conn_;
-				vm0[ExclusiveNetBroadcast::P_MSG] = msg_.GetBuffer();
-				SendEvent(E_EXCLUSIVENETBROADCAST, vm0);
+				vm.Clear();
+				vm[ExclusiveNetBroadcast::P_EXCLUDEDCONNECTION] = conn_;
+				vm[ExclusiveNetBroadcast::P_MSG] = msg_.GetBuffer();
+				SendEvent(E_EXCLUSIVENETBROADCAST, vm);
 			}
 		}
 	}
@@ -495,5 +514,24 @@ void MoveByTouch::HandleGetLc(StringHash eventType, VariantMap& eventData)
 		msg_.WriteFloat(gravityRamp);
 		msg_.WriteBool(moveToStopOnTime_);
 		conn->SendMessage(MSG_LCMSG, true, true, msg_);
+	}
+}
+
+void MoveByTouch::HandleMoveModelNode(StringHash eventType, VariantMap& eventData)
+{
+	Node* modelNode = (Node*)(eventData[MoveModelNode::P_NODE].GetPtr());
+
+	if (modelNode == modelNode_)
+	{
+		Vector3 dest = eventData[MoveModelNode::P_DEST].GetVector3();
+		float speed = eventData[MoveModelNode::P_SPEED].GetFloat();
+		float speedRamp = eventData[MoveModelNode::P_SPEEDRAMP].GetFloat();
+		float gravity = eventData[MoveModelNode::P_GRAVITY].GetFloat();
+		float gravityRamp = eventData[MoveModelNode::P_GRAVITYRAMP].GetFloat();
+		bool stop = eventData[MoveModelNode::P_STOPONCOMPLETION].GetBool();
+		bool rotate = eventData[MoveModelNode::P_ROTATE].GetBool();
+		bool sendToServer = eventData[MoveModelNode::P_SENDTOSERVER].GetBool();
+
+		MoveTo(dest, speed, speedRamp, gravity, gravityRamp, stop, rotate, sendToServer);
 	}
 }
