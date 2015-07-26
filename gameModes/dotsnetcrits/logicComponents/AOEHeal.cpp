@@ -268,8 +268,12 @@ void AOEHeal::StartAOEHeal(Vector3 targetPos, float timeRamp, bool sendToServer)
 	{
 		particleEndNode_->SetWorldPosition(targetPos_);
 		emitterEndFX_->SetEmitting(true);
-		//particleEndNode_->GetComponent<SoundSource3D>()->Play(main_->cache_->GetResource<Sound>("Sounds/AOEHeal/AOEHeal.ogg"));
+		particleEndNode_->GetComponent<SoundSource3D>()->Play(main_->cache_->GetResource<Sound>("Sounds/aoeheal/aoeheal.ogg"));
 
+		VariantMap vm;
+		vm[SoundRequest::P_NODE] = node_;
+		vm[SoundRequest::P_SOUNDTYPE] = SOUNDTYPE_CAST;
+		SendEvent(E_SOUNDREQUEST,vm);
 	}
 
 	AOEHealed_ = true;

@@ -56,6 +56,7 @@
 #include "logicComponents/Cloak.h"
 #include "logicComponents/Cleanse.h"
 #include "logicComponents/Knockback.h"
+#include "logicComponents/SoundPlayer.h"
 
 DotsNetCrits::DotsNetCrits(Context* context, Urho3DPlayer* main, bool isServer) :
 	LogicComponent(context)
@@ -291,6 +292,8 @@ void DotsNetCrits::AttachLogicComponents(SharedPtr<Node> sceneNode)
 	sceneNode->AddComponent(new Cleanse(context_, main_), 0, LOCAL);
 
 	sceneNode->AddComponent(new Knockback(context_, main_), 0, LOCAL);
+
+	sceneNode->AddComponent(new SoundPlayer(context_, main_), 0, LOCAL);
 }
 
 void DotsNetCrits::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData)

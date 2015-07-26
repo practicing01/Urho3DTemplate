@@ -266,6 +266,11 @@ void Teleport::TeleportTo(Vector3 dest, bool sendToServer)
 
 	particleEndNode_->GetComponent<SoundSource3D>()->Play(main_->cache_->GetResource<Sound>("Sounds/teleport/teleport.ogg"), 0.0f, 0.5f);
 
+	vm.Clear();
+	vm[SoundRequest::P_NODE] = node_;
+	vm[SoundRequest::P_SOUNDTYPE] = SOUNDTYPE_CAST;
+	SendEvent(E_SOUNDREQUEST,vm);
+
 	if (sendToServer)
 	{
 		msg_.Clear();

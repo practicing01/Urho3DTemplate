@@ -134,6 +134,12 @@ void Health::ModifyHealth(int healthMod, int operation, bool sendToServer)
 	else if (operation == -1)
 	{
 		health_ -= healthMod;
+
+		VariantMap vm;
+		vm[SoundRequest::P_NODE] = node_;
+		vm[SoundRequest::P_SOUNDTYPE] = SOUNDTYPE_HURT;
+		SendEvent(E_SOUNDREQUEST,vm);
+
 	}
 
 	VariantMap vm;

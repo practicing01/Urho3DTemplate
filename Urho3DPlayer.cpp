@@ -121,7 +121,7 @@ void Urho3DPlayer::Start()
 
 void Urho3DPlayer::Stop()
 {
-	audio_->Stop();
+	//audio_->Stop();
 }
 
 void Urho3DPlayer::SubscribeToEvents()
@@ -243,10 +243,14 @@ void Urho3DPlayer::RemoveRootNode(SharedPtr<Node> rootNode)
 	}
 
 	rootNodes_.Remove(rootNode);
+	rootNode->RemoveAllChildren();
+	rootNode->RemoveAllComponents();
 	rootNode->Remove();
 
 	SharedPtr<Node> sceneNode = sceneNodes_[index];
 	sceneNodes_.Remove(sceneNode);
+	sceneNode->RemoveAllChildren();
+	sceneNode->RemoveAllComponents();
 	sceneNode->Remove();
 }
 

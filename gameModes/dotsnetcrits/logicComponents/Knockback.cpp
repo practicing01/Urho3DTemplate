@@ -200,6 +200,11 @@ void Knockback::StartKnockback(Vector3 pos, bool sendToServer)
 	vm[AnimateSceneNode::P_LAYER] = 1;
 	SendEvent(E_ANIMATESCENENODE, vm);
 
+	vm.Clear();
+	vm[SoundRequest::P_NODE] = node_;
+	vm[SoundRequest::P_SOUNDTYPE] = SOUNDTYPE_MELEE;
+	SendEvent(E_SOUNDREQUEST,vm);
+
 	victoria_ = modelNode_->GetPosition();
 	victoria_.y_ += beeBox_.Size().y_;
 	particleStartNode_->SetPosition(victoria_);

@@ -49,6 +49,10 @@ LCTarget::LCTarget(Context* context) :
 
 LCTarget::~LCTarget()
 {
+	if (particleEndNode_)
+	{
+		particleEndNode_->Remove();
+	}
 }
 
 void LCTarget::HandleSetSceneNodeByModelNode(StringHash eventType, VariantMap& eventData)

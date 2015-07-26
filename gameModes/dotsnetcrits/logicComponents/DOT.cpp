@@ -192,7 +192,12 @@ void DOT::Exec(int clientID, float timeRamp, bool sendToServer)
 		victoria.y_ += target->beeBox_.Size().y_;
 		target->particleEndNode_->SetWorldPosition(victoria);
 		target->emitterEndFX_->SetEmitting(true);
-		//particleEndNode_->GetComponent<SoundSource3D>()->Play(lc_->main_->cache_->GetResource<Sound>("Sounds/DOT/DOT.ogg"));
+		target->particleEndNode_->GetComponent<SoundSource3D>()->Play(lc_->main_->cache_->GetResource<Sound>("Sounds/dot/dot.ogg"));
+
+		VariantMap vm;
+		vm[SoundRequest::P_NODE] = node_;
+		vm[SoundRequest::P_SOUNDTYPE] = SOUNDTYPE_CAST;
+		SendEvent(E_SOUNDREQUEST,vm);
 	}
 
 	target->elapsedTime_ = timeRamp;

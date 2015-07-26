@@ -161,6 +161,16 @@ void MoveByTouch::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
 		return;
 	}
 
+	if (!scene_)
+	{
+		return;
+	}
+
+	if (!scene_->GetComponent<PhysicsWorld>())
+	{
+		return;
+	}
+
 	using namespace TouchEnd;
 
 	Ray cameraRay = cameraNode_->GetComponent<Camera>()->GetScreenRay(

@@ -306,5 +306,14 @@ EVENT(E_MOVEMODELNODE, MoveModelNode)
 	PARAM(P_SENDTOSERVER, SendToServer);// bool
 }
 
+EVENT(E_SOUNDREQUEST, SoundRequest)
+{
+   PARAM(P_NODE, Node);
+   PARAM(P_SOUNDTYPE, SoundType);
+}
+
 extern const int GAMEMODEMSG_RESPAWNNODE;
 extern const int GAMEMODEMSG_GETLC;
+extern const int SOUNDTYPE_CAST;
+extern const int SOUNDTYPE_MELEE;
+extern const int SOUNDTYPE_HURT;

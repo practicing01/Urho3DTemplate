@@ -268,8 +268,12 @@ void AOE::StartAOE(Vector3 targetPos, float timeRamp, bool sendToServer)
 	{
 		particleEndNode_->SetWorldPosition(targetPos_);
 		emitterEndFX_->SetEmitting(true);
-		//particleEndNode_->GetComponent<SoundSource3D>()->Play(main_->cache_->GetResource<Sound>("Sounds/AOE/AOE.ogg"));
+		particleEndNode_->GetComponent<SoundSource3D>()->Play(main_->cache_->GetResource<Sound>("Sounds/aoe/aoe.ogg"));
 
+		VariantMap vm;
+		vm[SoundRequest::P_NODE] = node_;
+		vm[SoundRequest::P_SOUNDTYPE] = SOUNDTYPE_CAST;
+		SendEvent(E_SOUNDREQUEST,vm);
 	}
 
 	AOEed_ = true;
