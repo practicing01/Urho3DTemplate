@@ -32,9 +32,13 @@ public:
 	void HandleServerConnect(StringHash eventType, VariantMap& eventData);
     void HandleNetworkMessage(StringHash eventType, VariantMap& eventData);
     void HandleItemSelected(StringHash eventType, VariantMap& eventData);
+    void HandleItemDeselected(StringHash eventType, VariantMap& eventData);
 	void HandleButtonRelease(StringHash eventType, VariantMap& eventData);
 	void HandleDisplayMenu(StringHash eventType, VariantMap& eventData);
+	void HandleTextFinished(StringHash eventType, VariantMap& eventData);
 	void QueryMasterServer();
+	void LoadScene();
+	void UnloadScene();
 
 	Urho3DPlayer* main_;
 	float elapsedTime_;
@@ -42,10 +46,18 @@ public:
 	Network* network_;
 	VectorBuffer msg_;
 
+	SharedPtr<Scene> scene_;
+	SharedPtr<Node> cameraNode_;
+
 	SharedPtr<UIElement> gameMenu_;
 	SharedPtr<UIElement> mainMenuButt_;
+	SharedPtr<UIElement> ipLineEdit_;
+	UIElement* serverName_;
+	UIElement* gameMode_;
+	UIElement* address_;
 	Vector<ServerInfo*> servers_;
 
 	bool masterServerConnected_;
 	String masterServerIP_;
+	String ipAddress_;
 };

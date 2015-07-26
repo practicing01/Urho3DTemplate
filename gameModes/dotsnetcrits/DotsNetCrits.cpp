@@ -113,7 +113,8 @@ void DotsNetCrits::Start()
 			main_->renderer_->SetMobileShadowBiasAdd(0.001);
 		}
 
-		main_->viewport_ = new Viewport(context_, scene_, cameraNode_->GetComponent<Camera>());
+		main_->viewport_->SetScene(scene_);
+		main_->viewport_->SetCamera(cameraNode_->GetComponent<Camera>());
 		main_->renderer_->SetViewport(0, main_->viewport_);
 
 		main_->mySceneNode_->AddComponent(new MechanicsHud(context_, main_), 0, LOCAL);

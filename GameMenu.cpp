@@ -6,6 +6,7 @@
  */
 
 #include <Urho3D/Urho3D.h>
+#include <Urho3D/Graphics/Camera.h>
 #include <Urho3D/Core/CoreEvents.h>
 #include <Urho3D/Engine/Engine.h>
 #include <Urho3D/UI/ListView.h>
@@ -36,6 +37,8 @@ LogicComponent(context)
 	network_ = GetSubsystem<Network>();
 
 	masterServerConnected_ = false;
+
+	ipAddress_ = "127.0.0.1";
 }
 
 GameMenu::~GameMenu()
@@ -61,13 +64,22 @@ void GameMenu::Start()
 	mainMenuButt_->SetEnabled(false);
 	mainMenuButt_->SetVisible(false);
 
-	SubscribeToEvent(gameMenu_->GetChild("serverName", true), E_ITEMSELECTED, HANDLER(GameMenu, HandleItemSelected));
-	SubscribeToEvent(gameMenu_->GetChild("gameMode", true), E_ITEMSELECTED, HANDLER(GameMenu, HandleItemSelected));
-	SubscribeToEvent(gameMenu_->GetChild("address", true), E_ITEMSELECTED, HANDLER(GameMenu, HandleItemSelected));
+	serverName_ = gameMenu_->GetChild("serverName", true);
+	gameMode_ = gameMenu_->GetChild("gameMode", true);
+	address_ = gameMenu_->GetChild("address", true);
+	ipLineEdit_ = gameMenu_->GetChild("IPLineEdit", true);
+
+	SubscribeToEvent(serverName_, E_ITEMSELECTED, HANDLER(GameMenu, HandleItemSelected));
+	SubscribeToEvent(gameMode_, E_ITEMSELECTED, HANDLER(GameMenu, HandleItemSelected));
+	SubscribeToEvent(address_, E_ITEMSELECTED, HANDLER(GameMenu, HandleItemSelected));
+	SubscribeToEvent(serverName_, E_ITEMDESELECTED, HANDLER(GameMenu, HandleItemDeselected));
+	SubscribeToEvent(gameMode_, E_ITEMDESELECTED, HANDLER(GameMenu, HandleItemDeselected));
+	SubscribeToEvent(address_, E_ITEMDESELECTED, HANDLER(GameMenu, HandleItemDeselected));
 	SubscribeToEvent(gameMenu_->GetChild("host", true), E_RELEASED, HANDLER(GameMenu, HandleButtonRelease));
 	SubscribeToEvent(gameMenu_->GetChild("list", true), E_RELEASED, HANDLER(GameMenu, HandleButtonRelease));
 	SubscribeToEvent(gameMenu_->GetChild("join", true), E_RELEASED, HANDLER(GameMenu, HandleButtonRelease));
 	SubscribeToEvent(mainMenuButt_, E_RELEASED, HANDLER(GameMenu, HandleButtonRelease));
+	SubscribeToEvent(ipLineEdit_, E_TEXTFINISHED, HANDLER(GameMenu, HandleTextFinished));
 
 	SubscribeToEvent(E_GAMEMENUDISPLAY, HANDLER(GameMenu, HandleDisplayMenu));
 	SubscribeToEvent(E_SERVERCONNECTED, HANDLER(GameMenu, HandleServerConnect));
@@ -76,13 +88,37 @@ void GameMenu::Start()
 
 void GameMenu::HandleItemSelected(StringHash eventType, VariantMap& eventData)
 {
-	return;//crashes on SetSelection()
 	using namespace ItemSelected;
 
 	UIElement* list = static_cast<UIElement*>(eventData[P_ELEMENT].GetPtr());
 	int index = eventData[P_SELECTION].GetInt();
 
-	//((ListView*)list)->SetSelection((unsigned)index);
+	UIElement* item = ((ListView*)list)->GetItem(index);
+	((Text*)item)->SetColor(Color(0.0f, 0.5f, 0.5f, 1.0f));
+
+	if (((ListView*)(serverName_))->GetSelection() != index)
+	{
+		((ListView*)(serverName_))->SetSelection(index);
+	}
+	else if (((ListView*)(gameMode_))->GetSelection() != index)
+	{
+		((ListView*)(gameMode_))->SetSelection(index);
+	}
+	else if (((ListView*)(address_))->GetSelection() != index)
+	{
+		((ListView*)(address_))->SetSelection(index);
+	}
+}
+
+void GameMenu::HandleItemDeselected(StringHash eventType, VariantMap& eventData)
+{
+	using namespace ItemDeselected;
+
+	UIElement* list = static_cast<UIElement*>(eventData[P_ELEMENT].GetPtr());
+	int index = eventData[P_SELECTION].GetInt();
+
+	UIElement* item = ((ListView*)list)->GetItem(index);
+	((Text*)item)->SetColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
 void GameMenu::HandleButtonRelease(StringHash eventType, VariantMap& eventData)
@@ -101,14 +137,17 @@ void GameMenu::HandleButtonRelease(StringHash eventType, VariantMap& eventData)
 	}
 	else if (ele->GetName() == "join")
 	{
-		int index = ((ListView*)gameMenu_->GetChild("serverName", true))->GetSelection();
+		int index = ((ListView*)serverName_)->GetSelection();
 
-		if (index < 0 || index >= ((ListView*)gameMenu_->GetChild("serverName", true))->GetNumItems())
+		if (index < 0 || index >= ((ListView*)serverName_)->GetNumItems())
 		{
+			network_->Disconnect();
+
+			network_->Connect(ipAddress_, 9002, 0);
 			return;
 		}
 
-		UIElement* item = ((ListView*)gameMenu_->GetChild("address", true))->GetItem(index);
+		UIElement* item = ((ListView*)address_)->GetItem(index);
 		String address = ((Text*)item)->GetText();
 
 		network_->Disconnect();
@@ -144,9 +183,9 @@ void GameMenu::HandleServerConnect(StringHash eventType, VariantMap& eventData)
 	//LOGERRORF("server connected to server");
 	if (masterServerConnected_)
 	{
-		((ListView*)gameMenu_->GetChild("serverName", true))->RemoveAllItems();
-		((ListView*)gameMenu_->GetChild("gameMode", true))->RemoveAllItems();
-		((ListView*)gameMenu_->GetChild("address", true))->RemoveAllItems();
+		((ListView*)serverName_)->RemoveAllItems();
+		((ListView*)gameMode_)->RemoveAllItems();
+		((ListView*)address_)->RemoveAllItems();
 
 		for (int x = 0; x < servers_.Size(); x++)
 		{
@@ -201,9 +240,9 @@ void GameMenu::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 		SharedPtr<UIElement> addressT = main_->ui_->LoadLayout(main_->cache_->GetResource<XMLFile>("UI/serverInfo.xml"));
 		((Text*)((UIElement*)addressT))->SetText(address.CString());
 
-		((ListView*)gameMenu_->GetChild("serverName", true))->AddItem(serverNameT);
-		((ListView*)gameMenu_->GetChild("gameMode", true))->AddItem(gameModeT);
-		((ListView*)gameMenu_->GetChild("address", true))->AddItem(addressT);
+		((ListView*)serverName_)->AddItem(serverNameT);
+		((ListView*)gameMode_)->AddItem(gameModeT);
+		((ListView*)address_)->AddItem(addressT);
 	}
 	else if (msgID == MSG_SERVERSSENT)
 	{
@@ -223,7 +262,7 @@ void GameMenu::HandleDisplayMenu(StringHash eventType, VariantMap& eventData)
 		mainMenuButt_->SetEnabled(false);
 		mainMenuButt_->SetVisible(false);
 
-		//
+		LoadScene();
 	}
 	else
 	{
@@ -231,5 +270,41 @@ void GameMenu::HandleDisplayMenu(StringHash eventType, VariantMap& eventData)
 		gameMenu_->SetVisible(false);
 		mainMenuButt_->SetEnabled(true);
 		mainMenuButt_->SetVisible(true);
+
+		UnloadScene();
 	}
+}
+
+void GameMenu::LoadScene()
+{
+	scene_ = new Scene(context_);
+
+	File loadFile(context_,main_->filesystem_->GetProgramDir()
+			+ "Data/Scenes/networkMenu.xml", FILE_READ);
+	scene_->LoadXML(loadFile);
+
+	cameraNode_ = new Node(context_);
+	cameraNode_ = scene_->GetChild("camera");
+
+	main_->viewport_->SetScene(scene_);
+	main_->viewport_->SetCamera(cameraNode_->GetComponent<Camera>());
+	main_->renderer_->SetViewport(0, main_->viewport_);
+}
+
+void GameMenu::UnloadScene()
+{
+	scene_->RemoveAllChildren();
+	scene_->RemoveAllComponents();
+	scene_->Remove();
+}
+
+void GameMenu::HandleTextFinished(StringHash eventType, VariantMap& eventData)
+{
+	using namespace TextFinished;
+
+	ipAddress_ = eventData[P_TEXT].GetString();
+
+	((ListView*)serverName_)->ClearSelection();
+	((ListView*)gameMode_)->ClearSelection();
+	((ListView*)address_)->ClearSelection();
 }

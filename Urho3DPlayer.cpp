@@ -113,6 +113,8 @@ void Urho3DPlayer::Start()
 	{
 		SubscribeToEvent(E_RESIZED, HANDLER(Urho3DPlayer, HandleElementResize));
 
+		viewport_ = new Viewport(context_);
+
 		myRootNode_->AddComponent(new Client(context_, this), 0, LOCAL);
 	}
 
@@ -121,7 +123,7 @@ void Urho3DPlayer::Start()
 
 void Urho3DPlayer::Stop()
 {
-	//audio_->Stop();
+	audio_->Stop();
 }
 
 void Urho3DPlayer::SubscribeToEvents()
