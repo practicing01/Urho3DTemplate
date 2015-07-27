@@ -44,6 +44,10 @@ void NetPulse::Start()
 
 void NetPulse::ClearConnections()
 {
+	for (int x = 0; x < pulseConns_.Size(); x++)
+	{
+		delete pulseConns_[x];
+	}
 	pulseConns_.Clear();
 }
 

@@ -28,6 +28,7 @@
 #include "DotsNetCrits.h"
 #include "../../network/NetworkConstants.h"
 #include "../../Constants.h"
+#include "../../network/ClientInfo.h"
 #include "logicComponents/MechanicsHud.h"
 #include "logicComponents/ModelPlayer.h"
 #include "logicComponents/ThirdPersonCamera.h"
@@ -72,7 +73,7 @@ DotsNetCrits::DotsNetCrits(Context* context, Urho3DPlayer* main, bool isServer) 
 DotsNetCrits::~DotsNetCrits()
 {
 	scene_->RemoveAllChildren();
-	scene_->RemoveAllComponents();
+	//scene_->RemoveAllComponents();
 	scene_->Remove();
 	main_->ClearRootNodes();
 }

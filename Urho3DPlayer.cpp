@@ -353,9 +353,26 @@ void Urho3DPlayer::RecursiveAddGuiTargets(UIElement* ele)
 
 void Urho3DPlayer::ClearRootNodes()
 {
+	for (int x = 0; x < sceneNodes_.Size(); x++)
+	{
+		sceneNodes_[x]->RemoveAllChildren();
+		sceneNodes_[x]->RemoveAllComponents();
+		sceneNodes_[x]->Remove();
+	}
 	sceneNodes_.Clear();
+
 	SharedPtr<Node> myRootNode = myRootNode_;
 
+	for (int x = 0; x < rootNodes_.Size(); x++)
+	{
+		if (rootNodes_[x] != myRootNode_)
+		{
+			rootNodes_[x]->RemoveAllChildren();
+			rootNodes_[x]->RemoveAllComponents();
+			rootNodes_[x]->Remove();
+		}
+
+	}
 	rootNodes_.Clear();
 
 	rootNodes_.Push(myRootNode);

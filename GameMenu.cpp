@@ -84,6 +84,9 @@ void GameMenu::Start()
 	SubscribeToEvent(E_GAMEMENUDISPLAY, HANDLER(GameMenu, HandleDisplayMenu));
 	SubscribeToEvent(E_SERVERCONNECTED, HANDLER(GameMenu, HandleServerConnect));
 	SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(GameMenu, HandleNetworkMessage));
+
+	gameMenu_->GetChild("host", true)->SetEnabledRecursive(false);
+	gameMenu_->GetChild("host", true)->SetVisible(false);
 }
 
 void GameMenu::HandleItemSelected(StringHash eventType, VariantMap& eventData)
@@ -129,7 +132,10 @@ void GameMenu::HandleButtonRelease(StringHash eventType, VariantMap& eventData)
 
 	if (ele->GetName() == "host")
 	{
-		LOGERRORF("host");
+		//todo workaround for each instance of things that handle events will trigger
+		//network_->Disconnect();
+		//main_->myRootNode_->AddComponent(new Server(context_, main_), 0, LOCAL);
+		//network_->Connect("127.0.0.1", 9002, 0);
 	}
 	else if (ele->GetName() == "list")
 	{
@@ -139,7 +145,7 @@ void GameMenu::HandleButtonRelease(StringHash eventType, VariantMap& eventData)
 	{
 		int index = ((ListView*)serverName_)->GetSelection();
 
-		if (index < 0 || index >= ((ListView*)serverName_)->GetNumItems())
+		if (index < 0)
 		{
 			network_->Disconnect();
 
@@ -294,7 +300,7 @@ void GameMenu::LoadScene()
 void GameMenu::UnloadScene()
 {
 	scene_->RemoveAllChildren();
-	scene_->RemoveAllComponents();
+	//scene_->RemoveAllComponents();
 	scene_->Remove();
 }
 
