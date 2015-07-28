@@ -74,7 +74,7 @@ void SoundPlayer::Start()
 {
 	lc_->Start(node_);
 
-	if (lc_->isServer_)
+	if (lc_->main_->engine_->IsHeadless())
 	{
 		return;
 	}

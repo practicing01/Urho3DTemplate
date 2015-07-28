@@ -105,9 +105,12 @@ void Urho3DPlayer::Start()
 	}
 	else if (serverTypeValue == 1)//Server
 	{
-		myRootNode_->AddComponent(new Server(context_, this), 0, LOCAL);
+		if (!engine_->IsHeadless())
+		{
+			SubscribeToEvent(E_RESIZED, HANDLER(Urho3DPlayer, HandleElementResize));
+		}
 
-		myRootNode_->AddComponent(new NetPulse(context_, this), 0, LOCAL);
+		myRootNode_->AddComponent(new Server(context_, this), 0, LOCAL);
 	}
 	else//Client
 	{

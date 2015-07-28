@@ -200,15 +200,18 @@ void Knockback::StartKnockback(Vector3 pos, bool sendToServer)
 	vm[AnimateSceneNode::P_LAYER] = 1;
 	SendEvent(E_ANIMATESCENENODE, vm);
 
-	vm.Clear();
-	vm[SoundRequest::P_NODE] = node_;
-	vm[SoundRequest::P_SOUNDTYPE] = SOUNDTYPE_MELEE;
-	SendEvent(E_SOUNDREQUEST,vm);
+	if (!main_->engine_->IsHeadless())
+	{
+		vm.Clear();
+		vm[SoundRequest::P_NODE] = node_;
+		vm[SoundRequest::P_SOUNDTYPE] = SOUNDTYPE_MELEE;
+		SendEvent(E_SOUNDREQUEST,vm);
 
-	victoria_ = modelNode_->GetPosition();
-	victoria_.y_ += beeBox_.Size().y_;
-	particleStartNode_->SetPosition(victoria_);
-	emitterStartFX_->SetEmitting(true);
+		victoria_ = modelNode_->GetPosition();
+		victoria_.y_ += beeBox_.Size().y_;
+		particleStartNode_->SetPosition(victoria_);
+		emitterStartFX_->SetEmitting(true);
+	}
 
 	scene_->GetComponent<PhysicsWorld>()->GetRigidBodies(rigidBodies_, Sphere(pos, radius_), 2);
 
@@ -219,7 +222,7 @@ void Knockback::StartKnockback(Vector3 pos, bool sendToServer)
 			Node* noed = rigidBodies_[x]->GetNode();
 			if (noed != modelNode_)
 			{
-				if (!isServer_)
+				if (!main_->engine_->IsHeadless())
 				{
 					victoria_ = noed->GetPosition();
 					BoundingBox beeBox = noed->GetComponent<AnimatedModel>()->GetWorldBoundingBox();
@@ -287,7 +290,14 @@ void Knockback::StartKnockback(Vector3 pos, bool sendToServer)
 		msg_.WriteInt(clientID_);
 		msg_.WriteString("Knockback");
 		msg_.WriteVector3(pos);
-		network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		if (!isServer_)
+		{
+			network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		}
+		else
+		{
+			network_->BroadcastMessage(MSG_LCMSG, true, true, msg_);
+		}
 	}
 }
 

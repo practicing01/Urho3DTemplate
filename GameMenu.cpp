@@ -85,8 +85,8 @@ void GameMenu::Start()
 	SubscribeToEvent(E_SERVERCONNECTED, HANDLER(GameMenu, HandleServerConnect));
 	SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(GameMenu, HandleNetworkMessage));
 
-	gameMenu_->GetChild("host", true)->SetEnabledRecursive(false);
-	gameMenu_->GetChild("host", true)->SetVisible(false);
+	//gameMenu_->GetChild("host", true)->SetEnabledRecursive(false);
+	//gameMenu_->GetChild("host", true)->SetVisible(false);
 }
 
 void GameMenu::HandleItemSelected(StringHash eventType, VariantMap& eventData)
@@ -132,10 +132,7 @@ void GameMenu::HandleButtonRelease(StringHash eventType, VariantMap& eventData)
 
 	if (ele->GetName() == "host")
 	{
-		//todo workaround for each instance of things that handle events will trigger
-		//network_->Disconnect();
-		//main_->myRootNode_->AddComponent(new Server(context_, main_), 0, LOCAL);
-		//network_->Connect("127.0.0.1", 9002, 0);
+		main_->myRootNode_->AddComponent(new Server(context_, main_), 0, LOCAL);
 	}
 	else if (ele->GetName() == "list")
 	{

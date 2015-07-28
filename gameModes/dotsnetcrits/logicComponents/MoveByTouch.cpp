@@ -372,7 +372,14 @@ void MoveByTouch::MoveTo(Vector3 dest, float speed, float speedRamp, float gravi
 		msg_.WriteFloat(gravity_);
 		msg_.WriteFloat(gravityRamp_);
 		msg_.WriteBool(moveToStopOnTime_);
-		network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		if (!isServer_)
+		{
+			network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		}
+		else
+		{
+			network_->BroadcastMessage(MSG_LCMSG, true, true, msg_);
+		}
 	}
 }
 

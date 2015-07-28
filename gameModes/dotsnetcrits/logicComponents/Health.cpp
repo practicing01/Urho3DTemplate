@@ -154,7 +154,14 @@ void Health::ModifyHealth(int healthMod, int operation, bool sendToServer)
 		msg_.WriteString("Health");
 		msg_.WriteInt(healthMod);
 		msg_.WriteInt(operation);
-		network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		if (!isServer_)
+		{
+			network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		}
+		else
+		{
+			network_->BroadcastMessage(MSG_LCMSG, true, true, msg_);
+		}
 	}
 }
 

@@ -28,7 +28,6 @@
 #include "DotsNetCrits.h"
 #include "../../network/NetworkConstants.h"
 #include "../../Constants.h"
-#include "../../network/ClientInfo.h"
 #include "logicComponents/MechanicsHud.h"
 #include "logicComponents/ModelPlayer.h"
 #include "logicComponents/ThirdPersonCamera.h"
@@ -104,7 +103,7 @@ void DotsNetCrits::Start()
 		spawnPoints_.Push( SharedPtr<Node>(spawns->GetChild(x) ) );
 	}
 
-	if (!isServer_)
+	if (!main_->engine_->IsHeadless())
 	{
 		if (GetPlatform() == "Android")
 		{
@@ -121,6 +120,12 @@ void DotsNetCrits::Start()
 		main_->mySceneNode_->AddComponent(new MechanicsHud(context_, main_), 0, LOCAL);
 
 		AttachLogicComponents(main_->mySceneNode_);
+
+		if (isServer_)
+		{
+			int index = Random( 0, spawnPoints_.Size() );
+			RespawnNode(main_->mySceneNode_, index);
+		}
 	}
 	else
 	{

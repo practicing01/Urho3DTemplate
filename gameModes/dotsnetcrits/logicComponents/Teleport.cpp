@@ -277,7 +277,14 @@ void Teleport::TeleportTo(Vector3 dest, bool sendToServer)
 		msg_.WriteInt(clientID_);
 		msg_.WriteString("Teleport");
 		msg_.WriteVector3(dest);
-		network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		if (!isServer_)
+		{
+			network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		}
+		else
+		{
+			network_->BroadcastMessage(MSG_LCMSG, true, true, msg_);
+		}
 	}
 }
 

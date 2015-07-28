@@ -143,7 +143,14 @@ void Speed::ModifySpeed(float speedMod, int operation, bool sendToServer)
 		msg_.WriteString("Speed");
 		msg_.WriteFloat(speedMod);
 		msg_.WriteInt(operation);
-		network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		if (!isServer_)
+		{
+			network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		}
+		else
+		{
+			network_->BroadcastMessage(MSG_LCMSG, true, true, msg_);
+		}
 	}
 }
 

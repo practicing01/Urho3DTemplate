@@ -264,7 +264,7 @@ void AOE::HandleSetSceneNodeClientID(StringHash eventType, VariantMap& eventData
 
 void AOE::StartAOE(Vector3 targetPos, float timeRamp, bool sendToServer)
 {
-	if (!isServer_)
+	if (!main_->engine_->IsHeadless())
 	{
 		particleEndNode_->SetWorldPosition(targetPos_);
 		emitterEndFX_->SetEmitting(true);
@@ -298,7 +298,14 @@ void AOE::StartAOE(Vector3 targetPos, float timeRamp, bool sendToServer)
 		msg_.WriteString("AOE");
 		msg_.WriteVector3(targetPos_);
 		msg_.WriteFloat(timeRamp);
-		network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		if (!isServer_)
+		{
+			network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		}
+		else
+		{
+			network_->BroadcastMessage(MSG_LCMSG, true, true, msg_);
+		}
 	}
 }
 
@@ -331,7 +338,7 @@ void AOE::HandleUpdate(StringHash eventType, VariantMap& eventData)
 		{
 			AOEed_ = false;
 
-			if (!isServer_)
+			if (!main_->engine_->IsHeadless())
 			{
 				emitterEndFX_->SetEmitting(false);
 			}

@@ -176,7 +176,7 @@ void DOTHeal::Exec(int clientID, float timeRamp, bool sendToServer)
 
 	target->GetSceneNodeClientID();
 
-	if (!lc_->isServer_)
+	if (!lc_->main_->engine_->IsHeadless())
 	{
 		target->particleEndNode_ = lc_->scene_->CreateChild(0,LOCAL);
 		target->emitterEndFX_ = target->particleEndNode_->CreateComponent<ParticleEmitter>(LOCAL);
@@ -218,7 +218,14 @@ void DOTHeal::Exec(int clientID, float timeRamp, bool sendToServer)
 		lc_->msg_.WriteString("DOTHeal");
 		lc_->msg_.WriteInt(target->clientID_);
 		lc_->msg_.WriteFloat(timeRamp);
-		lc_->network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, lc_->msg_);
+		if (!lc_->isServer_)
+		{
+			lc_->network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, lc_->msg_);
+		}
+		else
+		{
+			lc_->network_->BroadcastMessage(MSG_LCMSG, true, true, lc_->msg_);
+		}
 	}
 
 	SubscribeToEvent(E_UPDATE, HANDLER(DOTHeal, HandleUpdate));
@@ -242,7 +249,7 @@ void DOTHeal::HandleUpdate(StringHash eventType, VariantMap& eventData)
 
 		if (targets_[x]->elapsedTime_ >= targets_[x]->duration_)
 		{
-			if (!lc_->isServer_)
+			if (!lc_->main_->engine_->IsHeadless())
 			{
 				targets_[x]->particleEndNode_->Remove();
 			}

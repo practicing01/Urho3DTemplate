@@ -126,7 +126,14 @@ void Blind::ModifyBlind(bool state, bool sendToServer)
 		msg_.WriteInt(clientID_);
 		msg_.WriteString("Blind");
 		msg_.WriteBool(state);
-		network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		if (!isServer_)
+		{
+			network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		}
+		else
+		{
+			network_->BroadcastMessage(MSG_LCMSG, true, true, msg_);
+		}
 	}
 }
 

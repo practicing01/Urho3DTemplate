@@ -143,7 +143,14 @@ void Armor::ModifyArmor(int armorMod, int operation, bool sendToServer)
 		msg_.WriteString("Armor");
 		msg_.WriteInt(armorMod);
 		msg_.WriteInt(operation);
-		network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		if (!isServer_)
+		{
+			network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+		}
+		else
+		{
+			network_->BroadcastMessage(MSG_LCMSG, true, true, msg_);
+		}
 	}
 }
 

@@ -21,6 +21,7 @@
 #include "ClientInfo.h"
 #include "NetPulse.h"
 #include "../Constants.h"
+#include "Client.h"
 
 Server::Server(Context* context, Urho3DPlayer* main) :
 	LogicComponent(context)
@@ -46,11 +47,17 @@ Server::Server(Context* context, Urho3DPlayer* main) :
 Server::~Server()
 {
 	msg_.Clear();
-	network_->GetServerConnection()->SendMessage(MSG_POPSERVER, true, true, msg_);
+	if (network_->GetServerConnection())
+	{
+		network_->GetServerConnection()->SendMessage(MSG_POPSERVER, true, true, msg_);
+	}
 }
 
 void Server::Start()
 {
+	main_->myRootNode_->AddComponent(new ClientInfo(context_, main_, clientIDCount_, NULL), 0, LOCAL);
+	clientIDCount_++;
+
 	XMLFile* xmlFile = main_->cache_->GetResource<XMLFile>("Objects/serverInfo.xml");
 	Node* serverInfo = main_->scene_->InstantiateXML(xmlFile->GetRoot(), Vector3::ZERO, Quaternion(), LOCAL);
 
@@ -58,7 +65,28 @@ void Server::Start()
 	gameMode_ = serverInfo->GetVar("gameMode").GetString();
 	masterServerIP_ = serverInfo->GetVar("masterServerIP").GetString();
 
-	network_->Connect(masterServerIP_, 9001, 0);
+	if (!main_->engine_->IsHeadless())
+	{
+		main_->viewport_ = new Viewport(context_);
+
+		main_->myRootNode_->RemoveComponent<Client>();
+
+		if (main_->myRootNode_->HasComponent<NetPulse>())
+		{
+			main_->myRootNode_->RemoveComponent(
+					main_->myRootNode_->GetComponent<NetPulse>());
+		}
+
+		main_->myRootNode_->AddComponent(new NetPulse(context_, main_), 0, LOCAL);
+
+		VariantMap vm;
+		vm[GameMenuDisplay::P_STATE] = false;
+		SendEvent(E_GAMEMENUDISPLAY, vm);
+	}
+	else
+	{
+		network_->Connect(masterServerIP_, 9001, 0);
+	}
 
 	LoadGameMode(gameMode_);
 }
@@ -197,7 +225,8 @@ void Server::HandleExclusiveNetBroadcast(StringHash eventType, VariantMap& event
 	{
 		if (main_->rootNodes_[x]->GetComponent<ClientInfo>())
 		{
-			if (main_->rootNodes_[x]->GetComponent<ClientInfo>()->connection_ != conn_)
+			if (main_->rootNodes_[x]->GetComponent<ClientInfo>()->connection_ != conn_
+					&& main_->rootNodes_[x]->GetComponent<ClientInfo>()->connection_ != NULL)
 			{
 				main_->rootNodes_[x]->GetComponent<ClientInfo>()->connection_->
 						SendMessage(MSG_LCMSG, true, true, msg);
