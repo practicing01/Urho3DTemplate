@@ -510,6 +510,11 @@ void MoveByTouch::HandleSetLagTime(StringHash eventType, VariantMap& eventData)
 
 void MoveByTouch::HandleGetLc(StringHash eventType, VariantMap& eventData)
 {
+	if (!isMoving_)
+	{
+		return;
+	}
+
 	Node* clientNode = (Node*)(eventData[GetLc::P_NODE].GetPtr());
 
 	if (clientNode == node_)

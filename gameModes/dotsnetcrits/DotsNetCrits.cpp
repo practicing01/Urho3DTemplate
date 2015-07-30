@@ -121,13 +121,12 @@ void DotsNetCrits::Start()
 
 		main_->mySceneNode_->AddComponent(new MechanicsHud(context_, main_), 0, LOCAL);
 
-		//if (isServer_)
-		{
-			int index = Random( 0, spawnPoints_.Size() );
-			RespawnNode(main_->mySceneNode_, index);
-		}
-
 		AttachLogicComponents(main_->mySceneNode_);
+
+		/*if (isServer_)
+		{
+			RespawnNode(main_->mySceneNode_, -1);
+		}*/
 	}
 	else
 	{
@@ -228,6 +227,11 @@ void DotsNetCrits::HandleNewClientID(StringHash eventType, VariantMap& eventData
 
 void DotsNetCrits::RespawnNode(SharedPtr<Node> sceneNode, int index)
 {
+	if (spawnPoints_.Size() == 0)
+	{
+		return;
+	}
+
 	if (index == -1)
 	{
 		index = Random( 0, spawnPoints_.Size() );

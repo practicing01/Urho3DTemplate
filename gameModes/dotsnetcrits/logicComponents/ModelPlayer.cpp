@@ -89,7 +89,7 @@ void ModelPlayer::LoadPlayer(String modelFilename)
 	RemoveModelNode();
     XMLFile* xmlFile = main_->cache_->GetResource<XMLFile>("Models/" + modelFilename + "/" + modelFilename + ".xml");
     modelNode_ = scene_->InstantiateXML(xmlFile->GetRoot(),
-    		node_->GetPosition(), node_->GetRotation(), LOCAL);
+    		Vector3::ZERO, Quaternion::IDENTITY, LOCAL);
 
 	RecursiveSetAnimation(modelNode_, "idle1", true, 0);
 	modelFilename_ = modelFilename;
@@ -102,7 +102,7 @@ void ModelPlayer::RemoveModelNode()
 	if (modelNode_ != NULL)
 	{
 		modelNode_->RemoveAllChildren();
-		//modelNode_->RemoveAllComponents();
+		modelNode_->RemoveAllComponents();
 		modelNode_->Remove();
 	}
 }
