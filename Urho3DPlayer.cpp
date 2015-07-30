@@ -52,6 +52,7 @@
 #include "network/NetPulse.h"
 #include "network/Client.h"
 #include "Constants.h"
+#include "GameMenu.h"
 
 DEFINE_APPLICATION_MAIN(Urho3DPlayer);
 
@@ -84,7 +85,7 @@ void Urho3DPlayer::Start()
 	ui_ = GetSubsystem<UI>();
 	engine_ = GetSubsystem<Engine>();
 	audio_ = GetSubsystem<Audio>();
-	viewport_ = NULL;
+	viewport_ = new Viewport(context_);
 
 	scene_ = new Scene(context_);
 
@@ -108,6 +109,11 @@ void Urho3DPlayer::Start()
 		if (!engine_->IsHeadless())
 		{
 			SubscribeToEvent(E_RESIZED, HANDLER(Urho3DPlayer, HandleElementResize));
+			myRootNode_->AddComponent(new GameMenu(context_, this), 0, LOCAL);
+
+			VariantMap vm;
+			vm[GameMenuDisplay::P_STATE] = true;
+			SendEvent(E_GAMEMENUDISPLAY, vm);
 		}
 
 		myRootNode_->AddComponent(new Server(context_, this), 0, LOCAL);
@@ -116,7 +122,11 @@ void Urho3DPlayer::Start()
 	{
 		SubscribeToEvent(E_RESIZED, HANDLER(Urho3DPlayer, HandleElementResize));
 
-		viewport_ = new Viewport(context_);
+		myRootNode_->AddComponent(new GameMenu(context_, this), 0, LOCAL);
+
+		VariantMap vm;
+		vm[GameMenuDisplay::P_STATE] = true;
+		SendEvent(E_GAMEMENUDISPLAY, vm);
 
 		myRootNode_->AddComponent(new Client(context_, this), 0, LOCAL);
 	}
@@ -134,7 +144,7 @@ void Urho3DPlayer::SubscribeToEvents()
 	// Subscribe HandleUpdate() function for processing update events
 	//SubscribeToEvent(E_UPDATE, HANDLER(Urho3DPlayer, HandleUpdate));
 
-	SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(Urho3DPlayer, HandleNetworkMessage));
+	//SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(Urho3DPlayer, HandleNetworkMessage));
 	SubscribeToEvent(E_KEYDOWN, HANDLER(Urho3DPlayer, HandleKeyDown));
 }
 
@@ -234,7 +244,7 @@ Node* Urho3DPlayer::GetRootNode(int clientID)
 	return NULL;
 }
 
-void Urho3DPlayer::RemoveRootNode(SharedPtr<Node> rootNode)
+void Urho3DPlayer::RemoveRootNode(Node* rootNode)
 {
 	int index = -1;
 
@@ -247,7 +257,7 @@ void Urho3DPlayer::RemoveRootNode(SharedPtr<Node> rootNode)
 		}
 	}
 
-	rootNodes_.Remove(rootNode);
+	rootNodes_.Remove(SharedPtr<Node>(rootNode));
 	rootNode->RemoveAllChildren();
 	rootNode->RemoveAllComponents();
 	rootNode->Remove();

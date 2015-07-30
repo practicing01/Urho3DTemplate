@@ -74,6 +74,7 @@ void MoveByTouch::Start()
 void MoveByTouch::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 {
 	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
+	UnsubscribeFromEvent(E_SETISSERVER);
 }
 
 void MoveByTouch::HandleSetCamera(StringHash eventType, VariantMap& eventData)
@@ -167,6 +168,11 @@ void MoveByTouch::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
 	}
 
 	if (!scene_->GetComponent<PhysicsWorld>())
+	{
+		return;
+	}
+
+	if (!modelNode_)
 	{
 		return;
 	}

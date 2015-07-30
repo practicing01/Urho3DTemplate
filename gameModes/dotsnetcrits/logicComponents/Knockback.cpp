@@ -53,6 +53,10 @@ Knockback::Knockback(Context* context, Urho3DPlayer* main) :
 
 Knockback::~Knockback()
 {
+	if (particleStartNode_)
+	{
+		particleStartNode_->Remove();
+	}
 }
 
 void Knockback::Start()
@@ -104,6 +108,7 @@ void Knockback::Start()
 void Knockback::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 {
 	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
+	UnsubscribeFromEvent(E_SETISSERVER);
 }
 
 void Knockback::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData)

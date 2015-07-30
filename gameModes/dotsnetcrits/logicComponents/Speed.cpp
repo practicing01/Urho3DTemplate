@@ -53,17 +53,25 @@ void Speed::Start()
 	SubscribeToEvent(E_SETCLIENTID, HANDLER(Speed, HandleSetClientID));
 	SubscribeToEvent(E_SETCONNECTION, HANDLER(Speed, HandleSetConnection));
 
-	VariantMap vm0;
-	SendEvent(E_GETISSERVER, vm0);
+	VariantMap vm;
+	SendEvent(E_GETISSERVER, vm);
+
+	vm.Clear();
+	vm[GetClientID::P_NODE] = main_->GetRootNode(node_);
+	SendEvent(E_GETCLIENTID, vm);
+
+	vm.Clear();
+	vm[GetConnection::P_NODE] = main_->GetRootNode(node_);
+	SendEvent(E_GETCONNECTION, vm);
+
+	SubscribeToEvent(E_LCMSG, HANDLER(Speed, HandleLCMSG));
+	SubscribeToEvent(E_GETLC, HANDLER(Speed, HandleGetLc));
 }
 
 void Speed::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 {
 	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
-
-	VariantMap vm;
-	vm[GetClientID::P_NODE] = main_->GetRootNode(node_);
-	SendEvent(E_GETCLIENTID, vm);
+	UnsubscribeFromEvent(E_SETISSERVER);
 }
 
 void Speed::HandleSetClientID(StringHash eventType, VariantMap& eventData)
@@ -73,11 +81,7 @@ void Speed::HandleSetClientID(StringHash eventType, VariantMap& eventData)
 	if (main_->GetSceneNode(clientNode) == node_)
 	{
 		clientID_ = eventData[SetClientID::P_CLIENTID].GetInt();
-
-		VariantMap vm;
-		vm[GetConnection::P_NODE] = main_->GetRootNode(node_);
-		SendEvent(E_GETCONNECTION, vm);
-
+		UnsubscribeFromEvent(E_SETCLIENTID);
 	}
 }
 
@@ -88,9 +92,7 @@ void Speed::HandleSetConnection(StringHash eventType, VariantMap& eventData)
 	if (main_->GetSceneNode(clientNode) == node_)
 	{
 		conn_ = (Connection*)(eventData[SetConnection::P_CONNECTION].GetPtr());
-
-		SubscribeToEvent(E_LCMSG, HANDLER(Speed, HandleLCMSG));
-		SubscribeToEvent(E_GETLC, HANDLER(Speed, HandleGetLc));
+		UnsubscribeFromEvent(E_SETCONNECTION);
 	}
 }
 

@@ -58,7 +58,7 @@ public:
     Node* GetRootNode(Connection* conn);
     Node* GetRootNode(int clientID);
     Node* GetRootNode(Node* sceneNode);
-    void RemoveRootNode(SharedPtr<Node>);
+    void RemoveRootNode(Node* rootNode);
     Node* GetSceneNode(int clientID);//todo replace these with events system
     Node* GetSceneNode(Node* rootNode);
     int GetClientID(Node* sceneNode);

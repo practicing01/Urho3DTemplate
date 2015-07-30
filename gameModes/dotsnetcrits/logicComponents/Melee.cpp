@@ -52,6 +52,10 @@ Melee::Melee(Context* context, Urho3DPlayer* main) :
 
 Melee::~Melee()
 {
+	if (particleStartNode_)
+	{
+		particleStartNode_->Remove();
+	}
 }
 
 void Melee::Start()
@@ -103,6 +107,7 @@ void Melee::Start()
 void Melee::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 {
 	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
+	UnsubscribeFromEvent(E_SETISSERVER);
 }
 
 void Melee::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData)

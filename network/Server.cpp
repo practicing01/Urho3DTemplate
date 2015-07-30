@@ -29,9 +29,9 @@ Server::Server(Context* context, Urho3DPlayer* main) :
 	main_ = main;
 	elapsedTime_ = 0.0f;
 
-	main_->network_->StartServer(9002);
-
 	network_ = GetSubsystem<Network>();
+
+	network_->StartServer(9002);
 
 	clientIDCount_ = 0;
 
@@ -55,9 +55,6 @@ Server::~Server()
 
 void Server::Start()
 {
-	main_->myRootNode_->AddComponent(new ClientInfo(context_, main_, clientIDCount_, NULL), 0, LOCAL);
-	clientIDCount_++;
-
 	XMLFile* xmlFile = main_->cache_->GetResource<XMLFile>("Objects/serverInfo.xml");
 	Node* serverInfo = main_->scene_->InstantiateXML(xmlFile->GetRoot(), Vector3::ZERO, Quaternion(), LOCAL);
 
@@ -67,21 +64,22 @@ void Server::Start()
 
 	if (!main_->engine_->IsHeadless())
 	{
-		main_->viewport_ = new Viewport(context_);
-
-		main_->myRootNode_->RemoveComponent<Client>();
-
 		if (main_->myRootNode_->HasComponent<NetPulse>())
 		{
 			main_->myRootNode_->RemoveComponent(
 					main_->myRootNode_->GetComponent<NetPulse>());
 		}
 
-		main_->myRootNode_->AddComponent(new NetPulse(context_, main_), 0, LOCAL);
+		if (main_->myRootNode_->HasComponent<ClientInfo>())
+		{
+			main_->myRootNode_->RemoveComponent(
+					main_->myRootNode_->GetComponent<ClientInfo>());
+		}
 
-		VariantMap vm;
-		vm[GameMenuDisplay::P_STATE] = false;
-		SendEvent(E_GAMEMENUDISPLAY, vm);
+		main_->myRootNode_->AddComponent(new ClientInfo(context_, main_, clientIDCount_, NULL), 0, LOCAL);
+		clientIDCount_++;
+
+		main_->myRootNode_->AddComponent(new NetPulse(context_, main_), 0, LOCAL);
 	}
 	else
 	{
@@ -153,7 +151,7 @@ void Server::HandleClientDisconnect(StringHash eventType, VariantMap& eventData)
 
 	node_->GetComponent<NetPulse>()->RemoveConnection(sender);
 
-	SharedPtr<Node> rootNode = SharedPtr<Node>( main_->GetRootNode(sender) );
+	Node* rootNode = main_->GetRootNode(sender);
 
 	if (rootNode != NULL)
 	{

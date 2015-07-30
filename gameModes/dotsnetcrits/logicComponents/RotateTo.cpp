@@ -88,6 +88,11 @@ void RotateTo::RotateModelNodeTo(Quaternion dest, float speed, float speedRamp, 
 
 void RotateTo::FixedUpdate(float timeStep)
 {
+	if (!modelNode_)
+	{
+		return;
+	}
+
 	if (isRotating_ == true && modelNode_ != NULL)
 	{
 		if (rotateToSpeedRamp_ > rotateToSpeed_)

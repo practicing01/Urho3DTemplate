@@ -60,6 +60,7 @@ void Silence::Start()
 void Silence::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 {
 	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
+	UnsubscribeFromEvent(E_SETISSERVER);
 }
 
 void Silence::HandleGetSilence(StringHash eventType, VariantMap& eventData)
@@ -82,11 +83,11 @@ void Silence::HandleSetClientID(StringHash eventType, VariantMap& eventData)
 	if (main_->GetSceneNode(clientNode) == node_)
 	{
 		clientID_ = eventData[SetClientID::P_CLIENTID].GetInt();
+		UnsubscribeFromEvent(E_SETCLIENTID);
 
 		VariantMap vm;
 		vm[GetConnection::P_NODE] = main_->GetRootNode(node_);
 		SendEvent(E_GETCONNECTION, vm);
-
 	}
 }
 
@@ -97,6 +98,7 @@ void Silence::HandleSetConnection(StringHash eventType, VariantMap& eventData)
 	if (main_->GetSceneNode(clientNode) == node_)
 	{
 		conn_ = (Connection*)(eventData[SetConnection::P_CONNECTION].GetPtr());
+		UnsubscribeFromEvent(E_SETCONNECTION);
 
 		SubscribeToEvent(E_LCMSG, HANDLER(Silence, HandleLCMSG));
 		SubscribeToEvent(E_GETLC, HANDLER(Silence, HandleGetLc));

@@ -52,6 +52,10 @@ DPSHeal::DPSHeal(Context* context, Urho3DPlayer* main) :
 
 DPSHeal::~DPSHeal()
 {
+	if (particleStartNode_)
+	{
+		particleStartNode_->Remove();
+	}
 }
 
 void DPSHeal::Start()
@@ -103,6 +107,7 @@ void DPSHeal::Start()
 void DPSHeal::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 {
 	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
+	UnsubscribeFromEvent(E_SETISSERVER);
 }
 
 void DPSHeal::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData)

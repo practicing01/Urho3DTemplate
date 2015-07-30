@@ -60,6 +60,7 @@ void Health::Start()
 void Health::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 {
 	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
+	UnsubscribeFromEvent(E_SETISSERVER);
 
 	VariantMap vm;
 	vm[GetClientID::P_NODE] = main_->GetRootNode(node_);
@@ -73,11 +74,11 @@ void Health::HandleSetClientID(StringHash eventType, VariantMap& eventData)
 	if (main_->GetSceneNode(clientNode) == node_)
 	{
 		clientID_ = eventData[SetClientID::P_CLIENTID].GetInt();
+		UnsubscribeFromEvent(E_SETCLIENTID);
 
 		VariantMap vm;
 		vm[GetConnection::P_NODE] = main_->GetRootNode(node_);
 		SendEvent(E_GETCONNECTION, vm);
-
 	}
 }
 
@@ -88,6 +89,7 @@ void Health::HandleSetConnection(StringHash eventType, VariantMap& eventData)
 	if (main_->GetSceneNode(clientNode) == node_)
 	{
 		conn_ = (Connection*)(eventData[SetConnection::P_CONNECTION].GetPtr());
+		UnsubscribeFromEvent(E_SETCONNECTION);
 
 		SubscribeToEvent(E_LCMSG, HANDLER(Health, HandleLCMSG));
 		SubscribeToEvent(E_GETLC, HANDLER(Health, HandleGetLc));

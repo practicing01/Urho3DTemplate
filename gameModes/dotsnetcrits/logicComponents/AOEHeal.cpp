@@ -62,6 +62,11 @@ AOEHeal::~AOEHeal()
 		VariantMap vm;
 		SendEvent(E_TOUCHUNSUBSCRIBE, vm);
 	}
+
+	if (particleEndNode_)
+	{
+		particleEndNode_->Remove();
+	}
 }
 
 void AOEHeal::Start()
@@ -94,6 +99,7 @@ void AOEHeal::Start()
 void AOEHeal::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 {
 	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
+	UnsubscribeFromEvent(E_SETISSERVER);
 }
 
 void AOEHeal::HandleSetCamera(StringHash eventType, VariantMap& eventData)

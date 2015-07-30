@@ -83,9 +83,6 @@ void LC::Start(Node* sceneNode)
 	vm[GetClientModelNode::P_NODE] = sceneNode_;
 	SendEvent(E_GETCLIENTMODELNODE, vm);
 
-	//Set bounding box.
-	beeBox_ = modelNode_->GetComponent<AnimatedModel>()->GetWorldBoundingBox();
-
 	//Get clientID.
 	SubscribeToEvent(E_SETCLIENTID, HANDLER(LC, HandleSetClientID));
 
@@ -127,6 +124,8 @@ void LC::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData)
 	if (sceneNode == sceneNode_)
 	{
 		modelNode_ = (Node*)(eventData[SetClientModelNode::P_MODELNODE].GetPtr());
+		//Set bounding box.
+		beeBox_ = modelNode_->GetComponent<AnimatedModel>()->GetWorldBoundingBox();
 		UnsubscribeFromEvent(E_SETCLIENTMODELNODE);
 	}
 }

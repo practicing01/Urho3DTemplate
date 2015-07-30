@@ -59,6 +59,16 @@ Teleport::~Teleport()
 		VariantMap vm;
 		SendEvent(E_TOUCHUNSUBSCRIBE, vm);
 	}
+
+	if (particleStartNode_)
+	{
+		particleStartNode_->Remove();
+	}
+
+	if (particleEndNode_)
+	{
+		particleEndNode_->Remove();
+	}
 }
 
 void Teleport::Start()
@@ -96,6 +106,7 @@ void Teleport::Start()
 void Teleport::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 {
 	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
+	UnsubscribeFromEvent(E_SETISSERVER);
 }
 
 void Teleport::HandleSetCamera(StringHash eventType, VariantMap& eventData)

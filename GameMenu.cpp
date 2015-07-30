@@ -27,6 +27,7 @@
 #include "network/NetworkConstants.h"
 #include "network/Server.h"
 #include "network/ServerInfo.h"
+#include "network/Client.h"
 
 GameMenu::GameMenu(Context* context, Urho3DPlayer* main) :
 LogicComponent(context)
@@ -130,8 +131,26 @@ void GameMenu::HandleButtonRelease(StringHash eventType, VariantMap& eventData)
 
 	UIElement* ele = static_cast<UIElement*>(eventData[Released::P_ELEMENT].GetPtr());
 
+	network_->Disconnect();
+
 	if (ele->GetName() == "host")
 	{
+		VariantMap vm;
+		vm[GameMenuDisplay::P_STATE] = false;
+		SendEvent(E_GAMEMENUDISPLAY, vm);
+
+		if (main_->myRootNode_->HasComponent<Client>())
+		{
+			main_->myRootNode_->RemoveComponent(
+					main_->myRootNode_->GetComponent<Client>());
+		}
+
+		if (main_->myRootNode_->HasComponent<Server>())
+		{
+			main_->myRootNode_->RemoveComponent(
+					main_->myRootNode_->GetComponent<Server>());
+		}
+
 		main_->myRootNode_->AddComponent(new Server(context_, main_), 0, LOCAL);
 	}
 	else if (ele->GetName() == "list")
@@ -140,12 +159,25 @@ void GameMenu::HandleButtonRelease(StringHash eventType, VariantMap& eventData)
 	}
 	else if (ele->GetName() == "join")
 	{
+		VariantMap vm;
+		vm[GameMenuDisplay::P_STATE] = false;
+		SendEvent(E_GAMEMENUDISPLAY, vm);
+
+		if (main_->myRootNode_->HasComponent<Server>())
+		{
+			main_->myRootNode_->RemoveComponent(
+					main_->myRootNode_->GetComponent<Server>());
+		}
+
+		if (!main_->myRootNode_->HasComponent<Client>())
+		{
+			main_->myRootNode_->AddComponent(new Client(context_, main_), 0, LOCAL);
+		}
+
 		int index = ((ListView*)serverName_)->GetSelection();
 
 		if (index < 0)
 		{
-			network_->Disconnect();
-
 			network_->Connect(ipAddress_, 9002, 0);
 			return;
 		}
@@ -153,13 +185,10 @@ void GameMenu::HandleButtonRelease(StringHash eventType, VariantMap& eventData)
 		UIElement* item = ((ListView*)address_)->GetItem(index);
 		String address = ((Text*)item)->GetText();
 
-		network_->Disconnect();
-
 		network_->Connect(address, 9002, 0);
 	}
 	else if (ele->GetName() == "mainMenuButt")
 	{
-		network_->Disconnect();
 		VariantMap vm;
 		vm[GameMenuDisplay::P_STATE] = true;
 		SendEvent(E_GAMEMENUDISPLAY, vm);
@@ -170,12 +199,15 @@ void GameMenu::QueryMasterServer()
 {
 	if (!masterServerConnected_)
 	{
-		network_->Disconnect();
-
 		XMLFile* xmlFile = main_->cache_->GetResource<XMLFile>("Objects/serverInfo.xml");
 		Node* serverInfo = main_->scene_->InstantiateXML(xmlFile->GetRoot(), Vector3::ZERO, Quaternion(), LOCAL);
 
 		masterServerIP_ = serverInfo->GetVar("masterServerIP").GetString();
+
+		if (masterServerIP_ == "127.0.0.1")
+		{
+			return;
+		}
 
 		masterServerConnected_ = network_->Connect(masterServerIP_, 9001, 0);
 	}
@@ -200,13 +232,6 @@ void GameMenu::HandleServerConnect(StringHash eventType, VariantMap& eventData)
 		msg_.Clear();
 		network_->GetServerConnection()->SendMessage(MSG_GETSERVERS, true, true, msg_);
 		return;
-	}
-
-	if (!main_->myRootNode_->GetComponent<Server>())
-	{
-		VariantMap vm;
-		vm[GameMenuDisplay::P_STATE] = false;
-		SendEvent(E_GAMEMENUDISPLAY, vm);
 	}
 }
 

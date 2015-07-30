@@ -23,6 +23,7 @@
 #include "NetPulse.h"
 #include "../GameMenu.h"
 #include "../Constants.h"
+#include "Server.h"
 
 Client::Client(Context* context, Urho3DPlayer* main) :
 	LogicComponent(context)
@@ -37,12 +38,6 @@ Client::~Client()
 
 void Client::Start()
 {
-	main_->myRootNode_->AddComponent(new GameMenu(context_, main_), 0, LOCAL);
-
-	VariantMap vm;
-	vm[GameMenuDisplay::P_STATE] = true;
-	SendEvent(E_GAMEMENUDISPLAY, vm);
-
 	SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(Client, HandleNetworkMessage));
 }
 
@@ -101,7 +96,7 @@ void Client::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 		MemoryBuffer msg(data);
 		int clientID = msg.ReadInt();
 
-		SharedPtr<Node> rootNode = SharedPtr<Node>( main_->GetRootNode(clientID) );
+		Node* rootNode = main_->GetRootNode(clientID);
 
 		if (rootNode != NULL)
 		{

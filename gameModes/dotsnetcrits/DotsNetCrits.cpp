@@ -79,6 +79,8 @@ DotsNetCrits::~DotsNetCrits()
 
 void DotsNetCrits::Start()
 {
+	main_->ClearRootNodes();
+
 	scene_ = new Scene(context_);
 
 	File loadFile(context_,main_->filesystem_->GetProgramDir()
@@ -105,6 +107,10 @@ void DotsNetCrits::Start()
 
 	if (!main_->engine_->IsHeadless())
 	{
+		main_->viewport_->SetScene(scene_);
+		main_->viewport_->SetCamera(cameraNode_->GetComponent<Camera>());
+		main_->renderer_->SetViewport(0, main_->viewport_);
+
 		if (GetPlatform() == "Android")
 		{
 			//main_->renderer_->SetReuseShadowMaps(false);
@@ -113,19 +119,15 @@ void DotsNetCrits::Start()
 			main_->renderer_->SetMobileShadowBiasAdd(0.001);
 		}
 
-		main_->viewport_->SetScene(scene_);
-		main_->viewport_->SetCamera(cameraNode_->GetComponent<Camera>());
-		main_->renderer_->SetViewport(0, main_->viewport_);
-
 		main_->mySceneNode_->AddComponent(new MechanicsHud(context_, main_), 0, LOCAL);
 
-		AttachLogicComponents(main_->mySceneNode_);
-
-		if (isServer_)
+		//if (isServer_)
 		{
 			int index = Random( 0, spawnPoints_.Size() );
 			RespawnNode(main_->mySceneNode_, index);
 		}
+
+		AttachLogicComponents(main_->mySceneNode_);
 	}
 	else
 	{

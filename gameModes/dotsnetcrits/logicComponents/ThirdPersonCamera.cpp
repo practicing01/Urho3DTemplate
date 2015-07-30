@@ -36,6 +36,9 @@ ThirdPersonCamera::ThirdPersonCamera(Context* context, Urho3DPlayer* main) :
 {
 	main_ = main;
 	isEnabled_ = true;
+	scene_ = NULL;
+	cameraNode_ = NULL;
+	modelNode_ = NULL;
 }
 
 ThirdPersonCamera::~ThirdPersonCamera()
@@ -50,9 +53,6 @@ void ThirdPersonCamera::Start()
 	}
 
 	scene_ = node_->GetScene();
-
-	cameraNode_ = NULL;
-	modelNode_ = NULL;
 
 	SubscribeToEvent(E_SETCLIENTCAMERA, HANDLER(ThirdPersonCamera, HandleSetCamera));
 	SubscribeToEvent(E_SETCLIENTMODELNODE, HANDLER(ThirdPersonCamera, HandleSetClientModelNode));
@@ -117,6 +117,16 @@ void ThirdPersonCamera::HandlePostUpdate(StringHash eventType, VariantMap& event
 		return;
 	}
 	else if (!scene_->GetComponent<Octree>())
+	{
+		return;
+	}
+
+	if (!modelNode_)
+	{
+		return;
+	}
+
+	if (!cameraNode_)
 	{
 		return;
 	}

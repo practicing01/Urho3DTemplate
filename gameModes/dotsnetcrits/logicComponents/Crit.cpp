@@ -51,6 +51,10 @@ Crit::Crit(Context* context, Urho3DPlayer* main) :
 
 Crit::~Crit()
 {
+	if (particleStartNode_)
+	{
+		particleStartNode_->Remove();
+	}
 }
 
 void Crit::Start()
@@ -102,6 +106,7 @@ void Crit::Start()
 void Crit::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
 {
 	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
+	UnsubscribeFromEvent(E_SETISSERVER);
 }
 
 void Crit::HandleSetClientModelNode(StringHash eventType, VariantMap& eventData)

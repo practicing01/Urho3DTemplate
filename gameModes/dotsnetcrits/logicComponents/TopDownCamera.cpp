@@ -97,6 +97,16 @@ void TopDownCamera::HandlePostUpdate(StringHash eventType, VariantMap& eventData
 {
 	if (!cameraNode_){return;}
 
+	if (!modelNode_)
+	{
+		return;
+	}
+
+	if (!cameraNode_)
+	{
+		return;
+	}
+
 	float timeStep = eventData[PostUpdate::P_TIMESTEP].GetFloat();
 
 	cameraNode_->SetWorldRotation(Quaternion(90.0f, 0.0f, 0.0f));

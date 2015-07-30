@@ -102,7 +102,7 @@ void ModelPlayer::RemoveModelNode()
 	if (modelNode_ != NULL)
 	{
 		modelNode_->RemoveAllChildren();
-		modelNode_->RemoveAllComponents();
+		//modelNode_->RemoveAllComponents();
 		modelNode_->Remove();
 	}
 }
