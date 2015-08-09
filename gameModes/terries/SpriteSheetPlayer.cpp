@@ -84,66 +84,71 @@ void SpriteSheetPlayer::LoadPlayer(String modelFilename)
 
 	modelNode_ = scene_->CreateChild("", LOCAL, 0);
 
-	Node* camera = modelNode_->CreateChild("camera");
-	Camera* cam = camera->CreateComponent<Camera>();
-	camera->SetPosition(Vector3(0.0f, 5.0f, -5.0f));
-
-    Node* cleric = modelNode_->CreateChild("cleric");
-
-    StaticSprite2D* clericSprite = cleric->CreateComponent<StaticSprite2D>();
-
-    //clericSprite->SetCustomMaterial(main_->cache_->GetResource<Material>("Materials/clericMat.xml"));
-
-    //RecursiveSetAnimation(modelNode_, "idle1", true, 0);
-
     modelNode_->SetPosition(main_->mySceneNode_->GetPosition());
     modelNode_->SetRotation(main_->mySceneNode_->GetRotation());
 
-    //todo free sprites_
-    AnimatedSpriteSheet* animatedSpriteSheet = new AnimatedSpriteSheet();
-    animatedSpriteSheet->sheet_ = main_->cache_->GetResource<SpriteSheet2D>("Urho2D/cleric/clericSheet.xml");
-    animatedSpriteSheet->staticSprite_ = clericSprite;
-    animatedSpriteSheet->playing_ = false;
-    animatedSpriteSheet->spriteID_ = spriteIDCount_;
-
-    sprites_.Push(animatedSpriteSheet);
-
-    spriteIDCount_++;
-
-    Vector<String> files;
-
-    main_->filesystem_->ScanDir(files,
-    		main_->filesystem_->GetProgramDir() + "Data/Urho2D/cleric/animations/",
-    		"*.xml", SCAN_FILES, false);
-
-    for (int x = 0; x < files.Size(); x++)
-    {
-    	XMLElement ani = main_->cache_->GetResource<XMLFile>("Urho2D/cleric/animations/" + files[x])->GetRoot();
-
-    	SpriteSheetAnimation* spriteSheetAni = new SpriteSheetAnimation();
-    	animations_.Push(spriteSheetAni);
-
-    	spriteSheetAni->name_ = ani.GetChild("Name").GetAttribute("name");
-    	spriteSheetAni->loop_ = ani.GetChild("Loop").GetBool("loop");
-
-    	int frameCount = ani.GetChild("FrameCount").GetInt("frameCount");
-
-    	for (int x = 0; x < frameCount; x++)
-    	{
-    		SpriteSheetAnimationFrame* frame = new SpriteSheetAnimationFrame();
-    		spriteSheetAni->frames_.Push(frame);
-
-    		String child = "Frame" + String(x);
-
-    		frame->duration_ = ani.GetChild(child).GetFloat("duration");
-    		frame->sprite_ = ani.GetChild(child).GetAttribute("sprite");
-    	}
-    }
+	Node* camera = modelNode_->CreateChild("camera");
+	Camera* cam = camera->CreateComponent<Camera>();
+	camera->SetPosition(Vector3(0.0f, 5.0f, -5.0f));
 
 	SubscribeToEvent(E_RESPAWNSCENENODE, HANDLER(SpriteSheetPlayer, HandleRespawnSceneNode));
 	SubscribeToEvent(E_ANIMATESPRITESHEET, HANDLER(SpriteSheetPlayer, HandleAnimateSpriteSheet));
 	SetUpdateEventMask(USE_UPDATE);
 	SubscribeToEvent(E_UPDATE, HANDLER(SpriteSheetPlayer, HandleUpdate));
+
+	LoadSprite("cleric");
+	LoadSprite("ranger");
+	LoadSprite("warrior");
+	LoadSprite("wizard");
+}
+
+void SpriteSheetPlayer::LoadSprite(String name)
+{
+	Node* spriteNode = modelNode_->CreateChild(name, LOCAL, 0);
+
+	StaticSprite2D* sprite = spriteNode->CreateComponent<StaticSprite2D>();
+
+	//sprite->SetCustomMaterial(main_->cache_->GetResource<Material>("Materials/" + name + "Mat.xml"));
+
+	AnimatedSpriteSheet* animatedSpriteSheet = new AnimatedSpriteSheet();
+	animatedSpriteSheet->sheet_ = main_->cache_->GetResource<SpriteSheet2D>("Urho2D/" + name + "/" + name + "Sheet.xml");
+	animatedSpriteSheet->staticSprite_ = sprite;
+	animatedSpriteSheet->playing_ = false;
+	animatedSpriteSheet->spriteID_ = spriteIDCount_;
+
+	sprites_.Push(animatedSpriteSheet);
+
+	spriteIDCount_++;
+
+	Vector<String> files;
+
+	main_->filesystem_->ScanDir(files,
+			main_->filesystem_->GetProgramDir() + "Data/Urho2D/" + name + "/animations/",
+			"*.xml", SCAN_FILES, false);
+
+	for (int x = 0; x < files.Size(); x++)
+	{
+		XMLElement ani = main_->cache_->GetResource<XMLFile>("Urho2D/" + name + "/animations/" + files[x])->GetRoot();
+
+		SpriteSheetAnimation* spriteSheetAni = new SpriteSheetAnimation();
+		animatedSpriteSheet->animations_.Push(spriteSheetAni);
+
+		spriteSheetAni->name_ = ani.GetChild("Name").GetAttribute("name");
+		spriteSheetAni->loop_ = ani.GetChild("Loop").GetBool("loop");
+
+		int frameCount = ani.GetChild("FrameCount").GetInt("frameCount");
+
+		for (int x = 0; x < frameCount; x++)
+		{
+			SpriteSheetAnimationFrame* frame = new SpriteSheetAnimationFrame();
+			spriteSheetAni->frames_.Push(frame);
+
+			String child = "Frame" + String(x);
+
+			frame->duration_ = ani.GetChild(child).GetFloat("duration");
+			frame->sprite_ = ani.GetChild(child).GetAttribute("sprite");
+		}
+	}
 
 	VariantMap vm;
 	vm[AnimateSpriteSheet::P_NODE] = node_;
@@ -154,6 +159,22 @@ void SpriteSheetPlayer::LoadPlayer(String modelFilename)
 
 void SpriteSheetPlayer::RemoveModelNode()
 {
+	for (int x = 0; x < sprites_.Size(); x++)
+	{
+		for (int y = 0; y < sprites_[x]->animations_.Size(); y++)
+		{
+			for (int z = 0; z < sprites_[x]->animations_[y]->frames_.Size(); z++)
+			{
+				delete sprites_[x]->animations_[y]->frames_[z];
+			}
+
+			delete sprites_[x]->animations_[y];
+		}
+
+		delete sprites_[x];
+	}
+	sprites_.Clear();
+
 	if (modelNode_ != NULL)
 	{
 		modelNode_->RemoveAllChildren();
@@ -194,11 +215,21 @@ void SpriteSheetPlayer::HandleRespawnSceneNode(StringHash eventType, VariantMap&
 
 	if (clientNode == node_)
 	{
-		Vector3 victoria = eventData[RespawnSceneNode::P_POSITION].GetVector3();
-		Quaternion quarterOnion = eventData[RespawnSceneNode::P_ROTATION].GetQuaternion();
+		Node* spawnNode = (Node*)(eventData[RespawnSceneNode::P_SPAWNNODE].GetPtr());
 
-		modelNode_->SetPosition(victoria);
-		modelNode_->SetRotation(quarterOnion);
+		modelNode_->SetPosition(spawnNode->GetPosition());
+		modelNode_->SetRotation(spawnNode->GetRotation());
+
+		for (int x = 0; x < modelNode_->GetNumChildren(); x++)
+		{
+			Node* modelChild = modelNode_->GetChild(x);
+			Node* spawnChild = spawnNode->GetChild(modelChild->GetName());
+			if (spawnChild)
+			{
+				modelChild->SetWorldPosition(spawnChild->GetWorldPosition());
+				modelChild->SetWorldRotation(spawnChild->GetWorldRotation());
+			}
+		}
 	}
 }
 
@@ -254,16 +285,16 @@ void SpriteSheetPlayer::HandleAnimateSpriteSheet(StringHash eventType, VariantMa
 		{
 			if (sprites_[x]->spriteID_ == spriteID)
 			{
-				for (int y = 0; y < animations_.Size(); y++)
+				for (int y = 0; y < sprites_[x]->animations_.Size(); y++)
 				{
-					if (animations_[y]->name_ == ani)
+					if (sprites_[x]->animations_[y]->name_ == ani)
 					{
-						sprites_[x]->animation_ = animations_[y];
+						sprites_[x]->animation_ = sprites_[x]->animations_[y];
 						sprites_[x]->elapsedTime_ = 0.0f;
 						sprites_[x]->curFrame_ = 0;
 						sprites_[x]->staticSprite_->SetSprite(
 								sprites_[x]->sheet_->GetSprite(
-										animations_[y]->frames_[0]->sprite_));
+										sprites_[x]->animations_[y]->frames_[0]->sprite_));
 						sprites_[x]->playing_ = true;
 						break;
 					}

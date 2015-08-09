@@ -38,6 +38,7 @@ public:
 	void HandleGetModelNodeBySceneNode(StringHash eventType, VariantMap& eventData);
 	void HandleUpdate(StringHash eventType, VariantMap& eventData);
 	void HandleAnimateSpriteSheet(StringHash eventType, VariantMap& eventData);
+	void LoadSprite(String name);
 
 	Urho3DPlayer* main_;
 
@@ -57,13 +58,12 @@ public:
 		Vector<SpriteSheetAnimationFrame*> frames_;
 	}SpriteSheetAnimation;
 
-	Vector<SpriteSheetAnimation*> animations_;
-
 	typedef struct
 	{
 		float elapsedTime_;
 		int curFrame_;
 		bool playing_;
+		Vector<SpriteSheetAnimation*> animations_;
 		SpriteSheetAnimation* animation_;
 		SpriteSheet2D* sheet_;
 		StaticSprite2D* staticSprite_;
