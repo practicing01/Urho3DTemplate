@@ -123,10 +123,10 @@ void DotsNetCrits::Start()
 
 		AttachLogicComponents(main_->mySceneNode_);
 
-		/*if (isServer_)
+		//if (isServer_)
 		{
 			RespawnNode(main_->mySceneNode_, -1);
-		}*/
+		}
 	}
 	else
 	{
