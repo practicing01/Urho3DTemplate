@@ -202,7 +202,10 @@ void DotsNetCrits::HandleNewClientID(StringHash eventType, VariantMap& eventData
 	{
 		scene_->AddChild(sceneNode);
 
-		AttachLogicComponents(sceneNode);
+		if (clientID != 0)//Server will always be zero.
+		{
+			AttachLogicComponents(sceneNode);
+		}
 
 		if (isServer_)
 		{

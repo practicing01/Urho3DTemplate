@@ -62,26 +62,24 @@ void Server::Start()
 	gameMode_ = serverInfo->GetVar("gameMode").GetString();
 	masterServerIP_ = serverInfo->GetVar("masterServerIP").GetString();
 
-	if (!main_->engine_->IsHeadless())
+	if (main_->myRootNode_->HasComponent<NetPulse>())
 	{
-		if (main_->myRootNode_->HasComponent<NetPulse>())
-		{
-			main_->myRootNode_->RemoveComponent(
-					main_->myRootNode_->GetComponent<NetPulse>());
-		}
-
-		if (main_->myRootNode_->HasComponent<ClientInfo>())
-		{
-			main_->myRootNode_->RemoveComponent(
-					main_->myRootNode_->GetComponent<ClientInfo>());
-		}
-
-		main_->myRootNode_->AddComponent(new ClientInfo(context_, main_, clientIDCount_, NULL), 0, LOCAL);
-		clientIDCount_++;
-
-		main_->myRootNode_->AddComponent(new NetPulse(context_, main_), 0, LOCAL);
+		main_->myRootNode_->RemoveComponent(
+				main_->myRootNode_->GetComponent<NetPulse>());
 	}
-	else
+
+	if (main_->myRootNode_->HasComponent<ClientInfo>())
+	{
+		main_->myRootNode_->RemoveComponent(
+				main_->myRootNode_->GetComponent<ClientInfo>());
+	}
+
+	main_->myRootNode_->AddComponent(new ClientInfo(context_, main_, clientIDCount_, NULL), 0, LOCAL);
+	clientIDCount_++;
+
+	main_->myRootNode_->AddComponent(new NetPulse(context_, main_), 0, LOCAL);
+
+	if (main_->engine_->IsHeadless())
 	{
 		network_->Connect(masterServerIP_, 9001, 0);
 	}

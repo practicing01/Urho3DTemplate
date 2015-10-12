@@ -409,6 +409,10 @@ void AOE::HandleUpdate(StringHash eventType, VariantMap& eventData)
 	{
 		if (elapsedTime_ >= cooldown_)
 		{
+			if (!main_->engine_->IsHeadless())
+			{
+				emitterEndFX_->SetEmitting(false);
+			}
 			UnsubscribeFromEvent(E_UPDATE);
 		}
 	}
@@ -416,6 +420,10 @@ void AOE::HandleUpdate(StringHash eventType, VariantMap& eventData)
 	{
 		if (AOEElapsedTime_ >= AOEDuration_)
 		{
+			if (!main_->engine_->IsHeadless())
+			{
+				emitterEndFX_->SetEmitting(false);
+			}
 			UnsubscribeFromEvent(E_UPDATE);
 		}
 	}
