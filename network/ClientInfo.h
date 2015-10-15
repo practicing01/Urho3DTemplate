@@ -19,7 +19,7 @@ using namespace Urho3D;
 
 class ClientInfo : public LogicComponent
 {
-	OBJECT(ClientInfo);
+	OBJECT(ClientInfo, LogicComponent);
 public:
 	ClientInfo(Context* context, Urho3DPlayer* main, int clientID, Connection* connection);
 	~ClientInfo();

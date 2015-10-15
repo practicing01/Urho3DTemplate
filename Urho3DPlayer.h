@@ -26,6 +26,7 @@
 
 #include <Urho3D/Audio/Audio.h>
 #include <Urho3D/Engine/Application.h>
+#include <Urho3D/Network/Connection.h>
 #include <Urho3D/IO/FileSystem.h>
 #include <Urho3D/Input/Input.h>
 #include <Urho3D/Network/Network.h>
@@ -39,7 +40,7 @@ using namespace Urho3D;
 /// Urho3DPlayer application runs a script specified on the command line.
 class Urho3DPlayer : public Application
 {
-    OBJECT(Urho3DPlayer);
+    OBJECT(Urho3DPlayer, Application);
 
 public:
     /// Construct.
@@ -62,6 +63,7 @@ public:
     Node* GetSceneNode(int clientID);//todo replace these with events system
     Node* GetSceneNode(Node* rootNode);
     int GetClientID(Node* sceneNode);
+    Connection* GetConn(Node* sceneNode);
     bool IsLocalClient(Node* sceneNode);
     void RecursiveAddGuiTargets(UIElement* ele);
     void ClearRootNodes();

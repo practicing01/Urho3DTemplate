@@ -19,7 +19,7 @@ using namespace Urho3D;
 
 class Client : public LogicComponent
 {
-	OBJECT(Client);
+	OBJECT(Client, LogicComponent);
 public:
 	Client(Context* context, Urho3DPlayer* main);
 	~Client();

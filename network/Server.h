@@ -18,7 +18,7 @@ using namespace Urho3D;
 
 class Server : public LogicComponent
 {
-	OBJECT(Server);
+	OBJECT(Server, LogicComponent);
 public:
 	Server(Context* context, Urho3DPlayer* main);
 	~Server();

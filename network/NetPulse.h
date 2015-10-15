@@ -19,7 +19,7 @@ using namespace Urho3D;
 
 class NetPulse : public LogicComponent
 {
-	OBJECT(NetPulse);
+	OBJECT(NetPulse, LogicComponent);
 public:
 	NetPulse(Context* context, Urho3DPlayer* main);
 	~NetPulse();

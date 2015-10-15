@@ -23,6 +23,7 @@
 #include <Urho3D/Urho3D.h>
 
 #include <Urho3D/Audio/Audio.h>
+#include <Urho3D/Network/Connection.h>
 #include <Urho3D/Core/CoreEvents.h>
 #include <Urho3D/Engine/Engine.h>
 #include <Urho3D/IO/FileSystem.h>
@@ -136,7 +137,7 @@ void Urho3DPlayer::Start()
 
 void Urho3DPlayer::Stop()
 {
-	audio_->Stop();
+	//audio_->Stop();
 }
 
 void Urho3DPlayer::SubscribeToEvents()
@@ -401,4 +402,16 @@ int Urho3DPlayer::GetClientID(Node* sceneNode)
 		}
 	}
 	return -1;
+}
+
+Connection* Urho3DPlayer::GetConn(Node* sceneNode)
+{
+	for (int x = 0; x < sceneNodes_.Size(); x++)
+	{
+		if (sceneNodes_[x] == sceneNode)
+		{
+			return rootNodes_[x]->GetComponent<ClientInfo>()->connection_;
+		}
+	}
+	return NULL;
 }

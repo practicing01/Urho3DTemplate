@@ -58,8 +58,9 @@ void ClientInfo::HandleClientSync(StringHash eventType, VariantMap& eventData)
 	msg_.Clear();
 	msg_.WriteInt(clientID_);
 	sender->SendMessage(MSG_CLIENTID, true, true, msg_);
+	//LOGERRORF("synching: sent clientID %d to new client %s",clientID_,sender->GetAddress().CString());
 
-	if (connection_ != NULL)
+	if (connection_ != NULL)//send this old client the new client id.
 	{
 		msg_.Clear();
 		msg_.WriteInt(clientID);

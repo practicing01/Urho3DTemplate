@@ -66,7 +66,7 @@ void Client::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 					main_->myRootNode_->GetComponent<NetPulse>());
 		}
 		main_->myRootNode_->AddComponent(new NetPulse(context_, main_), 0, LOCAL);
-
+//LOGERRORF("got my clientID %d", clientID);
 		msg_.Clear();
 		network_->GetServerConnection()->SendMessage(MSG_GOTMYCLIENTID, true, true, msg_);
 	}
@@ -85,7 +85,7 @@ void Client::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 		main_->scene_->AddChild(rootNode);
 
 		rootNode->AddComponent(new ClientInfo(context_, main_, clientID, NULL), 0, LOCAL);
-
+//LOGERRORF("got newclientid msg, clientid %d", clientID);
 		VariantMap vm;
 		vm[NewClientID::P_CLIENTID] = clientID;
 		SendEvent(E_NEWCLIENTID, vm);
@@ -110,7 +110,7 @@ void Client::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 		String gameMode = msg.ReadString();
 
 		LoadGameMode(gameMode);
-
+//LOGERRORF("got loadgame msg, sending my clientid %d",main_->myRootNode_->GetComponent<ClientInfo>()->clientID_);
 		msg_.Clear();
 		msg_.WriteInt(main_->myRootNode_->GetComponent<ClientInfo>()->clientID_);
 		network_->GetServerConnection()->SendMessage(MSG_LOADEDGAMEMODE, true, true, msg_);
@@ -128,8 +128,8 @@ void Client::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 
 void Client::LoadGameMode(String gameMode)
 {
-	if (gameMode == "DotsNetCrits")
+	if (gameMode == "DotsNetCritsOnline")
 	{
-		main_->myRootNode_->AddComponent(new DotsNetCrits(context_, main_, false), 0, LOCAL);
+		main_->myRootNode_->AddComponent(new DotsNetCritsOnline(context_, main_, false), 0, LOCAL);
 	}
 }

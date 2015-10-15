@@ -9,7 +9,7 @@
 #include <Urho3D/Urho3D.h>
 #include <Urho3D/Core/Object.h>
 
-#include "gameModes/dotsnetcrits/DotsNetCrits.h"
+#include "gameModes/dotsnetcritsonline/DotsNetCritsOnline.h"
 
 using namespace Urho3D;
 
@@ -310,6 +310,11 @@ EVENT(E_SOUNDREQUEST, SoundRequest)
 {
    PARAM(P_NODE, Node);
    PARAM(P_SOUNDTYPE, SoundType);
+}
+
+EVENT(E_SCENEOBJECTMOVETOCOMPLETE, SceneObjectMoveToComplete)
+{
+   PARAM(P_NODE, Node);
 }
 
 extern const int GAMEMODEMSG_RESPAWNNODE;
