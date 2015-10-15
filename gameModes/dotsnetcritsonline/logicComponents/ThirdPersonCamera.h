@@ -30,4 +30,7 @@ public:
 	Urho3DPlayer* main_;
 
 	SharedPtr<Node> cameraNode_;
+	SharedPtr<Node> originNode_;
+
+	float distanceDampener_;
 };

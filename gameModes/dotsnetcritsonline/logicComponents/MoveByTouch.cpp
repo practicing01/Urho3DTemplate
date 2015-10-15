@@ -61,6 +61,11 @@ void MoveByTouch::Start()
 		SubscribeToEvent(E_TOUCHEND, HANDLER(MoveByTouch, HandleTouchEnd));
 	}
 
+	/*debugNode_ = node_->GetScene()->CreateChild("moveToDebugNode",LOCAL);
+	debugNode_->AddChild(node_->GetChild("modelNode")->Clone());
+	debugNode_->GetChild("modelNode")->RemoveComponent(
+			debugNode_->GetChild("modelNode")->GetComponent<CollisionShape>());*/
+
 	isMoving_ = false;
 	speed_ = node_->GetComponent<Speed>()->speed_;
 	speedRamp_ = speed_;
@@ -337,12 +342,12 @@ void MoveByTouch::OnMoveToComplete()
 }
 
 void MoveByTouch::HandleNodeCollision(StringHash eventType, VariantMap& eventData)
-{//LOGERRORF("col");
+{
 	using namespace NodeCollision;
 
     MemoryBuffer contacts(eventData[P_CONTACTS].GetBuffer());
     SharedPtr<Node> otherNode = SharedPtr<Node>(static_cast<Node*>(eventData[P_OTHERNODE].GetPtr()));
-
+    //LOGERRORF("col with %s",otherNode->GetName().CString());
     while (!contacts.IsEof())
     {
         Vector3 contactPosition = contacts.ReadVector3();
@@ -353,6 +358,11 @@ void MoveByTouch::HandleNodeCollision(StringHash eventType, VariantMap& eventDat
         Vector3 vectoria_ = node_->GetPosition();
 
         float level = Abs(contactNormal.y_);
+
+        //debug
+        //debugNode_->SetPosition(vectoria_ + Vector3(0.0f, contactPosition.y_, 0.0f));
+        //debugNode_->SetPosition(contactPosition);
+        //end debug
 
         if (level > 0.1f)
         {//todo check if above height, if so it's a ceiling, don't raise

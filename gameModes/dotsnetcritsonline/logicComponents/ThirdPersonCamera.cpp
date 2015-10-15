@@ -52,6 +52,8 @@ void ThirdPersonCamera::Start()
 	cameraNode_ = new Node(context_);
 	cameraNode_ = node_->GetScene()->GetChild("camera")->Clone(LOCAL);
 
+	originNode_ = node_->GetScene()->CreateChild("cameraOriginNode", LOCAL);
+
 	if (main_->viewport_ != NULL)
 	{
 		main_->viewport_->SetCamera(cameraNode_->GetComponent<Camera>());
@@ -62,12 +64,24 @@ void ThirdPersonCamera::Start()
 	node_->AddChild(cameraNode_);
 	cameraNode_->SetName("cameraNode");
 
+	node_->AddChild(originNode_);
+	/*originNode_->AddChild(node_->GetChild("modelNode")->Clone());
+	originNode_->GetChild("modelNode")->RemoveComponent(
+			originNode_->GetChild("modelNode")->GetComponent<CollisionShape>());
+*/
 	BoundingBox beeBox = modelNode->GetComponent<AnimatedModel>()->GetWorldBoundingBox();
 
 	cameraNode_->SetWorldPosition(node_->GetWorldPosition() + Vector3(0.0f, beeBox.Size().y_ * 1.5f, beeBox.Size().z_ * -15.0f));
 	cameraNode_->SetWorldRotation(node_->GetWorldRotation());
 
-	cameraNode_->Pitch(15.0f);
+	cameraNode_->LookAt(node_->GetWorldPosition() + Vector3(0.0f, beeBox.Size().y_, 0.0f));
+
+	originNode_->SetWorldPosition(cameraNode_->GetWorldPosition());
+	originNode_->SetWorldRotation(cameraNode_->GetWorldRotation());
+
+	distanceDampener_ = 0.1f;
+
+	//SubscribeToEvent(E_POSTUPDATE, HANDLER(ThirdPersonCamera, HandlePostUpdate));
 }
 
 void ThirdPersonCamera::HandlePostUpdate(StringHash eventType, VariantMap& eventData)
@@ -99,26 +113,24 @@ void ThirdPersonCamera::HandlePostUpdate(StringHash eventType, VariantMap& event
 
 	Vector3 vectoria = beeBox.Size();
 
-	Vector3 camOrigin = node_->GetWorldPosition() + Vector3(0.0f, beeBox.Size().y_ * 1.5f, beeBox.Size().z_ * -15.0f);
+	Vector3 camOrigin = originNode_->GetPosition();
 
-	float rayDistance = (camOrigin - modelNode->GetPosition()).Length();
+	float rayDistance = originNode_->GetPosition().Length();
 
 	Ray cameraRay;
 
-	cameraRay.origin_ = node_->GetPosition();
+	cameraRay.origin_ = originNode_->GetWorldPosition();
 
-	cameraRay.origin_.y_ += vectoria.y_;
-
-	cameraRay.direction_ = (cameraNode_->GetWorldPosition() - cameraRay.origin_).Normalized();
+	cameraRay.direction_ = originNode_->GetWorldDirection();
 
 	Vector3 victoria_ = cameraNode_->GetPosition();
-	float remainingDist = (victoria_ - camOrigin).Length();
+	float remainingDist = (victoria_ - originNode_->GetPosition()).Length();
 	float inderp = (remainingDist * timeStep);
 
-	if (remainingDist > 1.0f)
+	if (remainingDist > distanceDampener_)
 	{
 		cameraNode_->SetPosition(victoria_.Lerp(camOrigin, inderp / remainingDist));
-		if ( (cameraNode_->GetPosition() - camOrigin).Length() < 1.0f)
+		if ( (cameraNode_->GetPosition() - camOrigin).Length() < distanceDampener_)
 		{
 			cameraNode_->SetPosition(camOrigin);
 		}
@@ -140,7 +152,7 @@ void ThirdPersonCamera::HandlePostUpdate(StringHash eventType, VariantMap& event
 			{
 				if (index > -1)
 				{
-					if (results[x].distance_ < results[index].distance_)
+					if (results[x].distance_ > results[index].distance_)
 					{
 						index = x;
 					}
@@ -154,18 +166,20 @@ void ThirdPersonCamera::HandlePostUpdate(StringHash eventType, VariantMap& event
 
 		if (index > -1)
 		{
-			if (results[index].position_.y_ < cameraRay.origin_.y_)
+			/*if (results[index].position_.y_ < cameraRay.origin_.y_)
 			{
 				victoria_ = results[index].position_;
 				victoria_.y_ += vectoria.y_;
 				cameraNode_->SetWorldPosition(victoria_);
 			}
-			else
+			else*/
 			{
 				cameraNode_->SetWorldPosition(results[index].position_);
+				/*cameraNode_->SetWorldPosition(results[index].position_ +
+						(results[index].normal_ * (rayDistance - results[index].distance_)));*/
 			}
 		}
 	}
 
-	cameraNode_->LookAt(cameraRay.origin_);
+	cameraNode_->LookAt(node_->GetWorldPosition() + Vector3(0.0f, beeBox.Size().y_, 0.0f));
 }

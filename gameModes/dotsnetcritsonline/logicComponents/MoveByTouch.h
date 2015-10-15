@@ -59,4 +59,6 @@ public:
 	Vector3 loc_;
 	Vector3 dir_;
 	bool rotate_;
+
+	SharedPtr<Node> debugNode_;
 };
