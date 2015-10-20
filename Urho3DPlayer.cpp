@@ -67,7 +67,7 @@ void Urho3DPlayer::Setup()
 	engineParameters_["WindowWidth"] = 800;
 	engineParameters_["WindowHeight"] = 480;
 	engineParameters_["WindowResizable"] = true;
-	engineParameters_["WindowTitle"] = "Banana";
+	engineParameters_["WindowTitle"] = "Dots Net Crits Online";
 	engineParameters_["FullScreen"] = false;
 	engineParameters_["VSync"] = true;
 }
@@ -131,6 +131,8 @@ void Urho3DPlayer::Start()
 
 		myRootNode_->AddComponent(new Client(context_, this), 0, LOCAL);
 	}
+
+	scene_->RemoveChild(serverType);
 
 	SubscribeToEvents();
 }

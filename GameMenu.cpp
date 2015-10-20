@@ -204,6 +204,8 @@ void GameMenu::QueryMasterServer()
 
 		masterServerIP_ = serverInfo->GetVar("masterServerIP").GetString();
 
+		main_->scene_->RemoveChild(serverInfo);
+
 		if (masterServerIP_ == "127.0.0.1")
 		{
 			return;
@@ -308,7 +310,7 @@ void GameMenu::LoadScene()
 	scene_ = new Scene(context_);
 
 	File loadFile(context_,main_->filesystem_->GetProgramDir()
-			+ "Data/Scenes/networkMenu.xml", FILE_READ);
+			+ "Data/Scenes/networkMenu/networkMenu.xml", FILE_READ);
 	scene_->LoadXML(loadFile);
 
 	cameraNode_ = new Node(context_);

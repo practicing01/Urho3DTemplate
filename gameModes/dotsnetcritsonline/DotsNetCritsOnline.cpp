@@ -28,14 +28,18 @@
 
 #include "DotsNetCritsOnline.h"
 #include "../../network/NetworkConstants.h"
+#include "../../network/ClientInfo.h"
 #include "../../Constants.h"
 
+#include "logicComponents/NodeInfo.h"
 #include "logicComponents/ModelController.h"
 #include "logicComponents/ThirdPersonCamera.h"
 #include "logicComponents/Speed.h"
 #include "logicComponents/Gravity.h"
 #include "logicComponents/RotateTo.h"
 #include "logicComponents/MoveByTouch.h"
+#include "logicComponents/ChickenNPC.h"
+#include "logicComponents/SceneVoter.h"
 
 DotsNetCritsOnline::DotsNetCritsOnline(Context* context, Urho3DPlayer* main, bool isServer) :
 	LogicComponent(context)
@@ -44,78 +48,43 @@ DotsNetCritsOnline::DotsNetCritsOnline(Context* context, Urho3DPlayer* main, boo
 	network_ = GetSubsystem<Network>();
 	isServer_ = isServer;
 
+	nodeIDCounter_ = 0;
+
+	lagTime_ = 0.0f;
+
+	GAMEMODEMSG_SPAWNCHICKEN = 0;
+
 	//SubscribeToEvent(E_POSTRENDERUPDATE, HANDLER(DotsNetCritsOnline, HandlePostRenderUpdate));
 	SubscribeToEvent(E_GETISSERVER, HANDLER(DotsNetCritsOnline, HandleGetIsServer));
 }
 
 DotsNetCritsOnline::~DotsNetCritsOnline()
 {
+	main_->ClearRootNodes();
 	scene_->RemoveAllChildren();
 	//scene_->RemoveAllComponents();
 	scene_->Remove();
-	main_->ClearRootNodes();
 }
 
 void DotsNetCritsOnline::Start()
 {
 	main_->ClearRootNodes();
 
-	scene_ = new Scene(context_);
+	XMLFile* xmlFile = main_->cache_->GetResource<XMLFile>("Objects/sceneInfo.xml");
+	Node* sceneInfo = main_->scene_->InstantiateXML(xmlFile->GetRoot(), Vector3::ZERO, Quaternion(), LOCAL);
 
-	File loadFile(context_,main_->filesystem_->GetProgramDir()
-			+ "Data/Scenes/cyberpunk.xml", FILE_READ);
-	scene_->LoadXML(loadFile);
+	sceneFileName_ = sceneInfo->GetVar("fileName").GetString();
 
-	main_->mySceneNode_ = SharedPtr<Node>( new Node(context_) );
-	main_->sceneNodes_.Push(main_->mySceneNode_);
+	main_->scene_->RemoveChild(sceneInfo);
 
-	for (int x = 0; x < main_->sceneNodes_.Size(); x++)
-	{//LOGERRORF("adding sceneNode to scene_. clientid %d",main_->GetClientID(main_->mySceneNode_));
-		scene_->AddChild(main_->sceneNodes_[x]);
-	}
-
-	cameraNode_ = new Node(context_);
-	cameraNode_ = scene_->GetChild("camera");
-
-	Node* spawns = scene_->GetChild("spawns");
-
-	for (int x = 0; x < spawns->GetNumChildren(false); x++)
-	{
-		spawnPoints_.Push( SharedPtr<Node>(spawns->GetChild(x) ) );
-	}
-
-	if (!main_->engine_->IsHeadless())
-	{
-		main_->viewport_->SetScene(scene_);
-		main_->viewport_->SetCamera(cameraNode_->GetComponent<Camera>());
-		main_->renderer_->SetViewport(0, main_->viewport_);
-
-		if (GetPlatform() == "Android")
-		{
-			//main_->renderer_->SetReuseShadowMaps(false);
-			//main_->renderer_->SetShadowQuality(SHADOWQUALITY_LOW_16BIT);
-			//main_->renderer_->SetMobileShadowBiasMul(2.0f);
-			main_->renderer_->SetMobileShadowBiasAdd(0.001);
-		}
-
-		//main_->mySceneNode_->AddComponent(new MechanicsHud(context_, main_), 0, LOCAL);
-
-	}
-	else
-	{
-		//scene_->GetChild("bgm")->GetComponent<SoundSource>()->Stop();
-	}
-
-	if (main_->network_->IsServerRunning())
-	{//LOGERRORF("spawning server player");
-		RespawnNode(main_->mySceneNode_, -1);
-		AttachLogicComponents(main_->mySceneNode_);
-	}
+	LoadScene(sceneFileName_);
 
 	SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(DotsNetCritsOnline, HandleNetworkMessage));
 	SubscribeToEvent(E_GAMEMENUDISPLAY, HANDLER(DotsNetCritsOnline, HandleDisplayMenu));
 	SubscribeToEvent(E_NEWCLIENTID, HANDLER(DotsNetCritsOnline, HandleNewClientID));
 	SubscribeToEvent(E_CLIENTHEALTHSET, HANDLER(DotsNetCritsOnline, HandleClientHealthSet));
+	SubscribeToEvent(E_LCMSG, HANDLER(DotsNetCritsOnline, HandleLCMSG));
+	SubscribeToEvent(E_GETLC, HANDLER(DotsNetCritsOnline, HandleGetLc));
 }
 
 void DotsNetCritsOnline::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
@@ -169,6 +138,10 @@ void DotsNetCritsOnline::HandleNetworkMessage(StringHash eventType, VariantMap& 
         	vm[GetLc::P_CONNECTION] = sender;
         	SendEvent(E_GETLC, vm);
         }
+        else if (gmMSG == GAMEMODEMSG_SCENEVOTE)
+        {
+        	//
+        }
     }
 }
 
@@ -218,10 +191,6 @@ void DotsNetCritsOnline::HandleNewClientID(StringHash eventType, VariantMap& eve
 			RespawnNode(sceneNode, index);
 			AttachLogicComponents(sceneNode);
 			//LOGERRORF("attaching lc to clientid %d",clientID);
-			/*msg_.Clear();
-			msg_.WriteInt(GAMEMODEMSG_GETLC);
-			msg_.WriteInt(clientID);
-			network_->GetServerConnection()->SendMessage(MSG_GAMEMODEMSG, true, true, msg_);*/
 		}
 	}
 }
@@ -253,12 +222,21 @@ void DotsNetCritsOnline::RespawnNode(SharedPtr<Node> sceneNode, int index)
 
 void DotsNetCritsOnline::AttachLogicComponents(SharedPtr<Node> sceneNode)
 {
+	sceneNode->AddComponent(new NodeInfo(context_, main_,
+			"DotsNetCritsOnline",
+			main_->GetClientID(sceneNode),
+			nodeIDCounter_), 0, LOCAL);
+	nodeIDCounter_++;
+
+	identifiedNodes_.Push(sceneNode);
+
 	sceneNode->AddComponent(new ModelController(context_, main_), 0, LOCAL);
 	sceneNode->AddComponent(new ThirdPersonCamera(context_, main_), 0, LOCAL);
 	sceneNode->AddComponent(new Speed(context_, main_), 0, LOCAL);
 	sceneNode->AddComponent(new Gravity(context_, main_), 0, LOCAL);
 	sceneNode->AddComponent(new RotateTo(context_, main_), 0, LOCAL);
 	sceneNode->AddComponent(new MoveByTouch(context_, main_), 0, LOCAL);
+	sceneNode->AddComponent(new SceneVoter(context_, main_), 0, LOCAL);
 }
 
 void DotsNetCritsOnline::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData)
@@ -338,5 +316,184 @@ void DotsNetCritsOnline::HandleSetSceneNodeClientID(StringHash eventType, Varian
 	if (sceneNode == targetSceneNode_)
 	{
 		targetSceneNodeClientID_ = eventData[SetSceneNodeClientID::P_CLIENTID].GetInt();
+	}
+}
+
+void DotsNetCritsOnline::SpawnChicken(int clientID, int nodeID)
+{
+	Node* chickenNode = scene_->CreateChild("chicken",LOCAL);
+
+	chickenNode->AddComponent(new NodeInfo(context_, main_,
+			"DotsNetCritsOnline",
+			clientID,
+			nodeIDCounter_), 0, LOCAL);
+
+	identifiedNodes_.Push(chickenNode);
+
+	chickenNode->AddComponent(new ChickenNPC(context_, main_), 0, LOCAL);
+
+	if (main_->network_->IsServerRunning())
+	{
+		VectorBuffer msg;
+		msg.WriteInt(clientID);
+		msg.WriteString("DotsNetCritsOnline");
+		msg.WriteInt(GAMEMODEMSG_SPAWNCHICKEN);
+		msg.WriteInt(nodeIDCounter_);
+
+		main_->network_->BroadcastMessage(MSG_LCMSG, true, true, msg);
+	}
+}
+
+void DotsNetCritsOnline::HandleLCMSG(StringHash eventType, VariantMap& eventData)
+{
+	const PODVector<unsigned char>& data = eventData[LcMsg::P_DATA].GetBuffer();
+	MemoryBuffer msg(data);
+	int clientID = msg.ReadInt();
+	String lc = msg.ReadString();
+
+	if (lc == "DotsNetCritsOnline")
+	{
+		int gmMSG = msg.ReadInt();
+
+		Connection* myconn = main_->GetConn(node_);
+		SubscribeToEvent(E_SETLAGTIME, HANDLER(DotsNetCritsOnline, HandleSetLagTime));
+
+		VariantMap vm;
+		vm[GetLagTime::P_CONNECTION] = myconn;
+		SendEvent(E_GETLAGTIME, vm);
+
+		if (gmMSG == GAMEMODEMSG_SPAWNCHICKEN)
+		{
+			int nodeID = msg.ReadInt();
+			SpawnChicken(clientID, nodeID);
+		}
+	}
+}
+
+void DotsNetCritsOnline::HandleSetLagTime(StringHash eventType, VariantMap& eventData)
+{
+	Connection* sender = (Connection*)(eventData[SetLagTime::P_CONNECTION].GetPtr());
+	if (sender == main_->GetConn(node_))
+	{
+		lagTime_ = eventData[SetLagTime::P_LAGTIME].GetFloat();
+
+		UnsubscribeFromEvent(E_SETLAGTIME);
+	}
+}
+
+void DotsNetCritsOnline::HandleGetLc(StringHash eventType, VariantMap& eventData)
+{
+	Node* clientNode = (Node*)(eventData[GetLc::P_NODE].GetPtr());
+
+	if (clientNode != node_)
+	{
+		Node* chicken;
+
+		for (int x = 0; x < identifiedNodes_.Size(); x++)
+		{
+			if (identifiedNodes_[x]->GetName() == "chicken")
+			{
+				chicken = identifiedNodes_[x];
+				break;
+			}
+		}
+
+		if (!chicken)
+		{
+			return;
+		}
+
+		Connection* conn = (Connection*)(eventData[GetLc::P_CONNECTION].GetPtr());
+
+		SubscribeToEvent(E_SETLAGTIME, HANDLER(DotsNetCritsOnline, HandleSetLagTime));
+
+		VariantMap vm;
+		vm[GetLagTime::P_CONNECTION] = conn;
+		SendEvent(E_GETLAGTIME, vm);
+
+		VectorBuffer msg;
+		msg.WriteInt(node_->GetComponent<ClientInfo>()->clientID_);
+		msg.WriteString("DotsNetCritsOnline");
+		msg.WriteInt(GAMEMODEMSG_SPAWNCHICKEN);
+		msg.WriteInt(chicken->GetComponent<NodeInfo>()->nodeID_);
+		conn->SendMessage(MSG_LCMSG, true, true, msg);
+	}
+}
+
+void DotsNetCritsOnline::LoadScene(String fileName)
+{
+	if (scene_)
+	{
+		scene_->RemoveAllChildren();
+		//scene_->RemoveAllComponents();
+		scene_->Remove();
+	}
+
+	scene_ = new Scene(context_);
+
+	sceneFileName_ = fileName;
+
+	String filePath = main_->filesystem_->GetProgramDir() + "Data/Scenes/" + sceneFileName_;
+
+	if (!main_->cache_->Exists(filePath))
+	{
+		return;
+	}
+
+	File loadFile(context_, filePath , FILE_READ);
+	scene_->LoadXML(loadFile);
+
+	for (int x = 0; x < main_->rootNodes_.Size(); x++)
+	{
+		SharedPtr<Node> sceneNode = SharedPtr<Node>( new Node(context_) );
+		main_->sceneNodes_.Push(sceneNode);
+		scene_->AddChild(sceneNode);
+
+		if (main_->rootNodes_[x] == main_->myRootNode_)
+		{
+			main_->mySceneNode_ = sceneNode;
+		}
+	}
+
+	cameraNode_ = new Node(context_);
+	cameraNode_ = scene_->GetChild("camera");
+
+	Node* spawns = scene_->GetChild("spawns");
+
+	for (int x = 0; x < spawns->GetNumChildren(false); x++)
+	{
+		spawnPoints_.Push( SharedPtr<Node>(spawns->GetChild(x) ) );
+	}
+
+	if (!main_->engine_->IsHeadless())
+	{
+		main_->viewport_->SetScene(scene_);
+		main_->viewport_->SetCamera(cameraNode_->GetComponent<Camera>());
+		main_->renderer_->SetViewport(0, main_->viewport_);
+
+		if (GetPlatform() == "Android")
+		{
+			//main_->renderer_->SetReuseShadowMaps(false);
+			//main_->renderer_->SetShadowQuality(SHADOWQUALITY_LOW_16BIT);
+			//main_->renderer_->SetMobileShadowBiasMul(2.0f);
+			main_->renderer_->SetMobileShadowBiasAdd(0.001);
+		}
+
+		//main_->mySceneNode_->AddComponent(new MechanicsHud(context_, main_), 0, LOCAL);
+
+	}
+	else
+	{
+		//scene_->GetChild("bgm")->GetComponent<SoundSource>()->Stop();
+	}
+
+	if (main_->network_->IsServerRunning())
+	{//LOGERRORF("spawning server player");
+		nodeIDCounter_ = 0;
+		identifiedNodes_.Clear();
+		RespawnNode(main_->mySceneNode_, -1);
+		AttachLogicComponents(main_->mySceneNode_);
+		SpawnChicken(node_->GetComponent<ClientInfo>()->clientID_, nodeIDCounter_);
+		nodeIDCounter_++;
 	}
 }

@@ -49,13 +49,6 @@ MoveByTouch::~MoveByTouch()
 
 void MoveByTouch::Start()
 {
-	SubscribeToEvent(E_TOUCHSUBSCRIBE, HANDLER(MoveByTouch, HandleTouchSubscribe));
-	SubscribeToEvent(E_TOUCHUNSUBSCRIBE, HANDLER(MoveByTouch, HandleTouchUnSubscribe));
-	SubscribeToEvent(E_MOVEMODELNODE, HANDLER(MoveByTouch, HandleMoveModelNode));
-	SubscribeToEvent(node_->GetChild("modelNode"), E_NODECOLLISION, HANDLER(MoveByTouch, HandleNodeCollision));
-	SubscribeToEvent(E_LCMSG, HANDLER(MoveByTouch, HandleLCMSG));
-	SubscribeToEvent(E_GETLC, HANDLER(MoveByTouch, HandleGetLc));
-
 	if (main_->IsLocalClient(node_))
 	{
 		SubscribeToEvent(E_TOUCHEND, HANDLER(MoveByTouch, HandleTouchEnd));
@@ -71,6 +64,14 @@ void MoveByTouch::Start()
 	speedRamp_ = speed_;
 	gravity_ = node_->GetComponent<Gravity>()->gravity_;
 	gravityRamp_ = gravity_;
+
+	SubscribeToEvent(E_TOUCHSUBSCRIBE, HANDLER(MoveByTouch, HandleTouchSubscribe));
+	SubscribeToEvent(E_TOUCHUNSUBSCRIBE, HANDLER(MoveByTouch, HandleTouchUnSubscribe));
+	SubscribeToEvent(E_MOVEMODELNODE, HANDLER(MoveByTouch, HandleMoveModelNode));
+	SubscribeToEvent(node_->GetChild("modelNode"), E_NODECOLLISION, HANDLER(MoveByTouch, HandleNodeCollision));
+	SubscribeToEvent(E_LCMSG, HANDLER(MoveByTouch, HandleLCMSG));
+	SubscribeToEvent(E_GETLC, HANDLER(MoveByTouch, HandleGetLc));
+
 	SetUpdateEventMask(USE_FIXEDUPDATE);
 }
 
@@ -221,7 +222,6 @@ void MoveByTouch::MoveTo(Vector3 dest, float speed, float speedRamp, float gravi
 
 void MoveByTouch::FixedUpdate(float timeStep)
 {
-	if (main_->engine_->IsHeadless()){return;}
 	//LOGERRORF("loop for clientid %d",main_->GetClientID(node_));
 	//LOGERRORF("1");
 	if (!node_->GetScene())
@@ -437,12 +437,12 @@ void MoveByTouch::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 				VectorBuffer msg;
 				msg.WriteInt(myclientID);
 				msg.WriteString("MoveByTouch");
-				msg.WriteVector3(loc_);
-				msg.WriteVector3(dest_);
+				msg.WriteVector3(loc);
+				msg.WriteVector3(dest);
 				msg.WriteFloat(speed_);
-				msg.WriteFloat(speedRamp_);
+				msg.WriteFloat(speedRamp);
 				msg.WriteFloat(gravity_);
-				msg.WriteFloat(gravityRamp_);
+				msg.WriteFloat(gravityRamp);
 
 				vm.Clear();
 				vm[ExclusiveNetBroadcast::P_EXCLUDEDCONNECTION] = myconn;

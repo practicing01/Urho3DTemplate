@@ -62,6 +62,8 @@ void Server::Start()
 	gameMode_ = serverInfo->GetVar("gameMode").GetString();
 	masterServerIP_ = serverInfo->GetVar("masterServerIP").GetString();
 
+	main_->scene_->RemoveChild(serverInfo);
+
 	if (main_->myRootNode_->HasComponent<NetPulse>())
 	{
 		main_->myRootNode_->RemoveComponent(

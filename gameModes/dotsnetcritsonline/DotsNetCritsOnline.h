@@ -33,6 +33,11 @@ public:
 	void HandleGetIsServer(StringHash eventType, VariantMap& eventData);
 	void HandleClientHealthSet(StringHash eventType, VariantMap& eventData);
 	void HandleSetSceneNodeClientID(StringHash eventType, VariantMap& eventData);
+	void SpawnChicken(int clientID, int nodeID);
+	void HandleLCMSG(StringHash eventType, VariantMap& eventData);
+	void HandleSetLagTime(StringHash eventType, VariantMap& eventData);
+	void HandleGetLc(StringHash eventType, VariantMap& eventData);
+	void LoadScene(String fileName);
 
 	Urho3DPlayer* main_;
 
@@ -47,6 +52,15 @@ public:
 
 	Vector< SharedPtr<Node> > spawnPoints_;
 
+	String sceneFileName_;
+
 	Node* targetSceneNode_;
 	int targetSceneNodeClientID_;
+
+	int nodeIDCounter_;
+	Vector<Node*> identifiedNodes_;
+
+	float lagTime_;
+
+	int GAMEMODEMSG_SPAWNCHICKEN;
 };

@@ -162,22 +162,6 @@ EVENT(E_GETLC, GetLc)
 	PARAM(P_CONNECTION, Connection);// connection pointer
 }
 
-EVENT(E_MECHANICREQUEST, MechanicRequest)
-{
-	PARAM(P_MECHANICID, MechanicID);// string
-}
-
-EVENT(E_GETCLIENTSILENCE, GetClientSilence)
-{
-	PARAM(P_NODE, Node);// node pointer
-}
-
-EVENT(E_SETCLIENTSILENCE, SetClientSilence)
-{
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_SILENCE, Silence);// bool
-}
-
 EVENT(E_GETSCENENODEBYMODELNODE, GetSceneNodeByModelNode)
 {
 	PARAM(P_NODE, Node);// node pointer
@@ -219,17 +203,6 @@ EVENT(E_MODIFYCLIENTSPEED, ModifyClientSpeed)
 	PARAM(P_SENDTOSERVER, SendToServer);// bool
 }
 
-EVENT(E_GETCLIENTBLIND, GetClientBlind)
-{
-	PARAM(P_NODE, Node);// node pointer
-}
-
-EVENT(E_SETCLIENTBLIND, SetClientBlind)
-{
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_BLIND, Blind);// bool
-}
-
 EVENT(E_GETCLIENTHEALTH, GetClientHealth)
 {
 	PARAM(P_NODE, Node);// node pointer
@@ -253,44 +226,6 @@ EVENT(E_CLIENTHEALTHSET, ClientHealthSet)
 {
 	PARAM(P_NODE, Node);// node pointer
 	PARAM(P_HEALTH, Health);// int
-}
-
-EVENT(E_MODIFYCLIENTSILENCE, ModifyClientSilence)
-{
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_STATE, State);// bool
-	PARAM(P_SENDTOSERVER, SendToServer);// bool
-}
-
-EVENT(E_MODIFYCLIENTBLIND, ModifyClientBlind)
-{
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_STATE, State);// bool
-	PARAM(P_SENDTOSERVER, SendToServer);// bool
-}
-
-EVENT(E_GETCLIENTARMOR, GetClientArmor)
-{
-	PARAM(P_NODE, Node);// node pointer
-}
-
-EVENT(E_SETCLIENTARMOR, SetClientArmor)
-{
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_ARMOR, Armor);// int
-}
-
-EVENT(E_MODIFYCLIENTARMOR, ModifyClientArmor)
-{
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_ARMOR, Armor);// int
-	PARAM(P_OPERATION, Operation);// char
-	PARAM(P_SENDTOSERVER, SendToServer);// bool
-}
-
-EVENT(E_CLEANSE, CleanseStatus)
-{
-	PARAM(P_NODE, Node);// node pointer
 }
 
 EVENT(E_MOVEMODELNODE, MoveModelNode)
@@ -317,8 +252,24 @@ EVENT(E_SCENEOBJECTMOVETOCOMPLETE, SceneObjectMoveToComplete)
    PARAM(P_NODE, Node);
 }
 
+EVENT(E_GETSCENENODEBYINFO, GetSceneNodeByInfo)
+{
+	PARAM(P_LC, LC);// LC string
+	PARAM(P_CLIENTID, ClientID);// int
+	PARAM(P_NODEID, NodeID);// int
+}
+
+EVENT(E_SETSCENENODEBYINFO, SetSceneNodeByInfo)
+{
+	PARAM(P_LC, LC);// LC string
+	PARAM(P_CLIENTID, ClientID);// int
+	PARAM(P_NODEID, NodeID);// int
+	PARAM(P_SCENENODE, SceneNode);// node pointer
+}
+
 extern const int GAMEMODEMSG_RESPAWNNODE;
 extern const int GAMEMODEMSG_GETLC;
+extern const int GAMEMODEMSG_SCENEVOTE;
 extern const int SOUNDTYPE_CAST;
 extern const int SOUNDTYPE_MELEE;
 extern const int SOUNDTYPE_HURT;
