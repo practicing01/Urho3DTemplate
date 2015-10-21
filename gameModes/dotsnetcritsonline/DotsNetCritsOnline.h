@@ -21,14 +21,14 @@ class DotsNetCritsOnline : public LogicComponent
 {
 	OBJECT(DotsNetCritsOnline, LogicComponent);
 public:
-	DotsNetCritsOnline(Context* context, Urho3DPlayer* main, bool isServer);
+	DotsNetCritsOnline(Context* context, Urho3DPlayer* main, bool isServer, String defaultScene);
 	~DotsNetCritsOnline();
 	virtual void Start();
     void HandleNetworkMessage(StringHash eventType, VariantMap& eventData);
 	void HandleDisplayMenu(StringHash eventType, VariantMap& eventData);
 	void HandleNewClientID(StringHash eventType, VariantMap& eventData);
 	void RespawnNode(SharedPtr<Node> sceneNode, int index = -1);
-	void AttachLogicComponents(SharedPtr<Node> sceneNode);
+	void AttachLogicComponents(SharedPtr<Node> sceneNode, int nodeID);
 	void HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData);
 	void HandleGetIsServer(StringHash eventType, VariantMap& eventData);
 	void HandleClientHealthSet(StringHash eventType, VariantMap& eventData);
@@ -38,6 +38,8 @@ public:
 	void HandleSetLagTime(StringHash eventType, VariantMap& eventData);
 	void HandleGetLc(StringHash eventType, VariantMap& eventData);
 	void LoadScene(String fileName);
+	void HandleGetSceneName(StringHash eventType, VariantMap& eventData);
+	void HandleSetSceneVote(StringHash eventType, VariantMap& eventData);
 
 	Urho3DPlayer* main_;
 
@@ -62,5 +64,9 @@ public:
 
 	float lagTime_;
 
+	int sceneVoteCount_;
+	HashMap<String, int> sceneCandidates_;
+
 	int GAMEMODEMSG_SPAWNCHICKEN;
+	int GAMEMODEMSG_LOADSCENE;
 };

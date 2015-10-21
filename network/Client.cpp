@@ -108,8 +108,9 @@ void Client::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 		const PODVector<unsigned char>& data = eventData[P_DATA].GetBuffer();
 		MemoryBuffer msg(data);
 		String gameMode = msg.ReadString();
+		String sceneFileName = msg.ReadString();
 
-		LoadGameMode(gameMode);
+		LoadGameMode(gameMode, sceneFileName);
 //LOGERRORF("got loadgame msg, sending my clientid %d",main_->myRootNode_->GetComponent<ClientInfo>()->clientID_);
 		msg_.Clear();
 		msg_.WriteInt(main_->myRootNode_->GetComponent<ClientInfo>()->clientID_);
@@ -126,10 +127,10 @@ void Client::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Client::LoadGameMode(String gameMode)
+void Client::LoadGameMode(String gameMode, String defaultScene)
 {
 	if (gameMode == "DotsNetCritsOnline")
 	{
-		main_->myRootNode_->AddComponent(new DotsNetCritsOnline(context_, main_, false), 0, LOCAL);
+		main_->myRootNode_->AddComponent(new DotsNetCritsOnline(context_, main_, false, defaultScene), 0, LOCAL);
 	}
 }

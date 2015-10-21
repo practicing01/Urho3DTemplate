@@ -25,7 +25,7 @@ public:
 	~Client();
 	virtual void Start();
     void HandleNetworkMessage(StringHash eventType, VariantMap& eventData);
-    void LoadGameMode(String gameMode);
+    void LoadGameMode(String gameMode, String defaultScene);
 
 	Urho3DPlayer* main_;
 

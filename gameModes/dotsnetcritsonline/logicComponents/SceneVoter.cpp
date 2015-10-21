@@ -41,7 +41,7 @@ SceneVoter::SceneVoter(Context* context, Urho3DPlayer* main) :
 LogicComponent(context)
 {
 	main_ = main;
-	selectedFilename_ = "";
+	selectedFilename_ = "cyberpunk";
 }
 
 SceneVoter::~SceneVoter()
@@ -93,25 +93,26 @@ void SceneVoter::HandleButtonRelease(StringHash eventType, VariantMap& eventData
 		{
 			PopulateSceneList();
 		}
-		else
-		{
-			selectedFilename_ = "";
-		}
 	}
 	else if (ele == voteButt_)
 	{
 		VectorBuffer msg;
+		msg.WriteInt(GAMEMODEMSG_SCENEVOTE);
 		msg.WriteInt(main_->GetClientID(node_));
-
 		msg.WriteString(selectedFilename_);
 
 		if (!main_->network_->IsServerRunning())
 		{
-			main_->network_->GetServerConnection()->SendMessage(GAMEMODEMSG_SCENEVOTE, true, true, msg);
+			main_->network_->GetServerConnection()->SendMessage(MSG_GAMEMODEMSG, true, true, msg);
 		}
 		else//non-headless host.
 		{
-			main_->network_->BroadcastMessage(GAMEMODEMSG_SCENEVOTE, true, true, msg);
+			main_->network_->BroadcastMessage(MSG_GAMEMODEMSG, true, true, msg);
+
+			VariantMap vm;
+			vm[SetSceneVote::P_SCENENODE] = node_;
+			vm[SetSceneVote::P_SCENENAME] = selectedFilename_;
+			SendEvent(E_SETSCENEVOTE, vm);
 		}
 	}
 }

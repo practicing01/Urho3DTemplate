@@ -35,6 +35,8 @@ Server::Server(Context* context, Urho3DPlayer* main) :
 
 	clientIDCount_ = 0;
 
+	sceneFileName_ = "";
+
     SubscribeToEvent(E_SERVERCONNECTED, HANDLER(Server, HandleServerConnect));
     SubscribeToEvent(E_SERVERDISCONNECTED, HANDLER(Server, HandleServerDisconnect));
     SubscribeToEvent(E_CONNECTFAILED, HANDLER(Server, HandleConnectFailed));
@@ -86,7 +88,14 @@ void Server::Start()
 		network_->Connect(masterServerIP_, 9001, 0);
 	}
 
-	LoadGameMode(gameMode_);
+	XMLFile* xmlFile2 = main_->cache_->GetResource<XMLFile>("Objects/sceneInfo.xml");
+	Node* sceneInfo = main_->scene_->InstantiateXML(xmlFile2->GetRoot(), Vector3::ZERO, Quaternion(), LOCAL);
+
+	sceneFileName_ = sceneInfo->GetVar("fileName").GetString();
+
+	main_->scene_->RemoveChild(sceneInfo);
+
+	LoadGameMode(gameMode_, sceneFileName_);
 }
 
 void Server::HandleUpdate(StringHash eventType, VariantMap& eventData)
@@ -175,6 +184,12 @@ void Server::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 	{
 		msg_.Clear();
 		msg_.WriteString(gameMode_);
+
+		SubscribeToEvent(E_SETSCENENAME, HANDLER(Server, HandleSetSceneName));
+		VariantMap vm;
+		SendEvent(E_GETSCENENAME, vm);
+
+		msg_.WriteString(sceneFileName_);
 		sender->SendMessage(MSG_LOADGAMEMODE, true, true, msg_);
 		//LOGERRORF("told new client to load game mode");
 	}
@@ -204,13 +219,13 @@ void Server::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Server::LoadGameMode(String gameMode)
+void Server::LoadGameMode(String gameMode, String defaultScene)
 {
 	gameMode_ = gameMode;
 
 	if (gameMode_ == "DotsNetCritsOnline")//Todo find better way of loading game modes
 	{
-		main_->myRootNode_->AddComponent(new DotsNetCritsOnline(context_, main_, true), 0, LOCAL);
+		main_->myRootNode_->AddComponent(new DotsNetCritsOnline(context_, main_, true, defaultScene), 0, LOCAL);
 	}
 }
 
@@ -232,4 +247,10 @@ void Server::HandleExclusiveNetBroadcast(StringHash eventType, VariantMap& event
 			}
 		}
 	}
+}
+
+void Server::HandleSetSceneName(StringHash eventType, VariantMap& eventData)
+{
+	sceneFileName_ = eventData[SetSceneName::P_SCENENAME].GetString();
+	UnsubscribeFromEvent(E_SETSCENENAME);
 }

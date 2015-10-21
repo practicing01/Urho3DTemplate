@@ -67,6 +67,7 @@ public:
     bool IsLocalClient(Node* sceneNode);
     void RecursiveAddGuiTargets(UIElement* ele);
     void ClearRootNodes();
+    void ClearSceneNodes();
 
     float timeStep_;
     Input* input_;

@@ -32,7 +32,8 @@ public:
 	void HandleClientConnect(StringHash eventType, VariantMap& eventData);
     void HandleNetworkMessage(StringHash eventType, VariantMap& eventData);
     void HandleExclusiveNetBroadcast(StringHash eventType, VariantMap& eventData);
-    void LoadGameMode(String gameMode);
+    void LoadGameMode(String gameMode, String defaultScene);
+    void HandleSetSceneName(StringHash eventType, VariantMap& eventData);
 
 	Urho3DPlayer* main_;
 	float elapsedTime_;
@@ -43,6 +44,7 @@ public:
 	String masterServerIP_;
 	String serverName_;
 	String gameMode_;
+	String sceneFileName_;
 
 	int clientIDCount_;
 };

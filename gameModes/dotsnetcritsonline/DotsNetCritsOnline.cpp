@@ -41,7 +41,7 @@
 #include "logicComponents/ChickenNPC.h"
 #include "logicComponents/SceneVoter.h"
 
-DotsNetCritsOnline::DotsNetCritsOnline(Context* context, Urho3DPlayer* main, bool isServer) :
+DotsNetCritsOnline::DotsNetCritsOnline(Context* context, Urho3DPlayer* main, bool isServer, String defaultScene) :
 	LogicComponent(context)
 {
 	main_ = main;
@@ -52,7 +52,12 @@ DotsNetCritsOnline::DotsNetCritsOnline(Context* context, Urho3DPlayer* main, boo
 
 	lagTime_ = 0.0f;
 
+	sceneVoteCount_ = 0;
+
+	sceneFileName_ = defaultScene;
+
 	GAMEMODEMSG_SPAWNCHICKEN = 0;
+	GAMEMODEMSG_LOADSCENE = 1;
 
 	//SubscribeToEvent(E_POSTRENDERUPDATE, HANDLER(DotsNetCritsOnline, HandlePostRenderUpdate));
 	SubscribeToEvent(E_GETISSERVER, HANDLER(DotsNetCritsOnline, HandleGetIsServer));
@@ -70,13 +75,6 @@ void DotsNetCritsOnline::Start()
 {
 	main_->ClearRootNodes();
 
-	XMLFile* xmlFile = main_->cache_->GetResource<XMLFile>("Objects/sceneInfo.xml");
-	Node* sceneInfo = main_->scene_->InstantiateXML(xmlFile->GetRoot(), Vector3::ZERO, Quaternion(), LOCAL);
-
-	sceneFileName_ = sceneInfo->GetVar("fileName").GetString();
-
-	main_->scene_->RemoveChild(sceneInfo);
-
 	LoadScene(sceneFileName_);
 
 	SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(DotsNetCritsOnline, HandleNetworkMessage));
@@ -85,6 +83,8 @@ void DotsNetCritsOnline::Start()
 	SubscribeToEvent(E_CLIENTHEALTHSET, HANDLER(DotsNetCritsOnline, HandleClientHealthSet));
 	SubscribeToEvent(E_LCMSG, HANDLER(DotsNetCritsOnline, HandleLCMSG));
 	SubscribeToEvent(E_GETLC, HANDLER(DotsNetCritsOnline, HandleGetLc));
+	SubscribeToEvent(E_GETSCENENAME, HANDLER(DotsNetCritsOnline, HandleGetSceneName));
+	SubscribeToEvent(E_SETSCENEVOTE, HANDLER(DotsNetCritsOnline, HandleSetSceneVote));
 }
 
 void DotsNetCritsOnline::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
@@ -105,6 +105,7 @@ void DotsNetCritsOnline::HandleNetworkMessage(StringHash eventType, VariantMap& 
         if (gmMSG == GAMEMODEMSG_RESPAWNNODE)
         {
         	int clientID = msg.ReadInt();
+        	int nodeID = msg.ReadInt();
         	int index = msg.ReadInt();
         	bool newClient = msg.ReadBool();
 
@@ -116,10 +117,11 @@ void DotsNetCritsOnline::HandleNetworkMessage(StringHash eventType, VariantMap& 
 
         		if (newClient)
         		{//LOGERRORF("respawned new clientID %d myclientd: %d", clientID, main_->GetClientID(main_->mySceneNode_));
+    				AttachLogicComponents(SharedPtr<Node>(sceneNode), nodeID);
+
         			if (main_->GetClientID(main_->mySceneNode_) == clientID)
         			{
         				//LOGERRORF("attaching lc to clientid %d",clientID);
-        				AttachLogicComponents(SharedPtr<Node>(sceneNode));
         				msg_.Clear();
             			msg_.WriteInt(GAMEMODEMSG_GETLC);
             			msg_.WriteInt(clientID);
@@ -140,7 +142,15 @@ void DotsNetCritsOnline::HandleNetworkMessage(StringHash eventType, VariantMap& 
         }
         else if (gmMSG == GAMEMODEMSG_SCENEVOTE)
         {
-        	//
+        	int clientID = msg.ReadInt();
+        	SharedPtr<Node> sceneNode = SharedPtr<Node>( main_->GetSceneNode(clientID) );
+
+        	String selectedFilename = msg.ReadString();
+
+        	VariantMap vm;
+			vm[SetSceneVote::P_SCENENODE] = sceneNode;
+			vm[SetSceneVote::P_SCENENAME] = selectedFilename;
+			SendEvent(E_SETSCENEVOTE, vm);
         }
     }
 }
@@ -173,24 +183,37 @@ void DotsNetCritsOnline::HandleNewClientID(StringHash eventType, VariantMap& eve
 
 		if (isServer_)
 		{//LOGERRORF("telling new clientID %d to respawn", clientID);
+			Connection* conn = main_->GetConn(sceneNode);
+			for (int x = 0; x < main_->sceneNodes_.Size(); x++)
+			{
+				SharedPtr<Node> oldSceneNode = main_->sceneNodes_[x];
+
+				if (oldSceneNode == sceneNode)
+				{
+					continue;
+				}
+
+				msg_.Clear();
+				msg_.WriteInt(GAMEMODEMSG_RESPAWNNODE);
+				msg_.WriteInt(main_->GetClientID(oldSceneNode));
+				msg_.WriteInt(oldSceneNode->GetComponent<NodeInfo>()->nodeID_);
+				msg_.WriteInt(-1);
+				msg_.WriteBool(true);//new client.
+				conn->SendMessage(MSG_GAMEMODEMSG, true, true, msg_);
+			}
+
 			int index = Random( 0, spawnPoints_.Size() );
 			RespawnNode(sceneNode, index);
 
-			AttachLogicComponents(sceneNode);
+			AttachLogicComponents(sceneNode, -1);
 
 			msg_.Clear();
 			msg_.WriteInt(GAMEMODEMSG_RESPAWNNODE);
 			msg_.WriteInt(clientID);
+			msg_.WriteInt(nodeIDCounter_);
 			msg_.WriteInt(index);
 			msg_.WriteBool(true);//new client
 			network_->BroadcastMessage(MSG_GAMEMODEMSG, true, true, msg_);
-		}
-		else
-		{
-			int index = Random( 0, spawnPoints_.Size() );
-			RespawnNode(sceneNode, index);
-			AttachLogicComponents(sceneNode);
-			//LOGERRORF("attaching lc to clientid %d",clientID);
 		}
 	}
 }
@@ -220,13 +243,20 @@ void DotsNetCritsOnline::RespawnNode(SharedPtr<Node> sceneNode, int index)
 	SendEvent(E_RESPAWNSCENENODE, vm);
 }
 
-void DotsNetCritsOnline::AttachLogicComponents(SharedPtr<Node> sceneNode)
+void DotsNetCritsOnline::AttachLogicComponents(SharedPtr<Node> sceneNode, int nodeID)
 {
+	int noedID = nodeID;
+
+	if (nodeID == -1)
+	{
+		noedID = nodeIDCounter_;
+		nodeIDCounter_++;
+	}
+
 	sceneNode->AddComponent(new NodeInfo(context_, main_,
 			"DotsNetCritsOnline",
 			main_->GetClientID(sceneNode),
-			nodeIDCounter_), 0, LOCAL);
-	nodeIDCounter_++;
+			noedID), 0, LOCAL);
 
 	identifiedNodes_.Push(sceneNode);
 
@@ -264,7 +294,7 @@ void DotsNetCritsOnline::HandleGetIsServer(StringHash eventType, VariantMap& eve
 }
 
 void DotsNetCritsOnline::HandleClientHealthSet(StringHash eventType, VariantMap& eventData)
-{
+{/*
 	if (!isServer_)
 	{
 		return;
@@ -288,7 +318,7 @@ void DotsNetCritsOnline::HandleClientHealthSet(StringHash eventType, VariantMap&
 
 		msg_.Clear();
 		msg_.WriteInt(GAMEMODEMSG_RESPAWNNODE);
-		msg_.WriteInt(targetSceneNodeClientID_);
+		msg_.WriteInt(targetSceneNodeClientID_);//todo add nodeID
 		msg_.WriteInt(index);
 		msg_.WriteBool(false);//old client
 		network_->BroadcastMessage(MSG_GAMEMODEMSG, true, true, msg_);
@@ -306,7 +336,7 @@ void DotsNetCritsOnline::HandleClientHealthSet(StringHash eventType, VariantMap&
 		msg_.WriteInt(100);
 		msg_.WriteInt(0);
 		network_->BroadcastMessage(MSG_LCMSG, true, true, msg_);
-	}
+	}*/
 }
 
 void DotsNetCritsOnline::HandleSetSceneNodeClientID(StringHash eventType, VariantMap& eventData)
@@ -367,6 +397,11 @@ void DotsNetCritsOnline::HandleLCMSG(StringHash eventType, VariantMap& eventData
 			int nodeID = msg.ReadInt();
 			SpawnChicken(clientID, nodeID);
 		}
+		else if (gmMSG == GAMEMODEMSG_LOADSCENE)
+		{
+			sceneFileName_ = msg.ReadString();
+			LoadScene(sceneFileName_ + ".xml");
+		}
 	}
 }
 
@@ -422,6 +457,9 @@ void DotsNetCritsOnline::HandleGetLc(StringHash eventType, VariantMap& eventData
 
 void DotsNetCritsOnline::LoadScene(String fileName)
 {
+	main_->ClearSceneNodes();
+	spawnPoints_.Clear();
+
 	if (scene_)
 	{
 		scene_->RemoveAllChildren();
@@ -491,9 +529,108 @@ void DotsNetCritsOnline::LoadScene(String fileName)
 	{//LOGERRORF("spawning server player");
 		nodeIDCounter_ = 0;
 		identifiedNodes_.Clear();
-		RespawnNode(main_->mySceneNode_, -1);
-		AttachLogicComponents(main_->mySceneNode_);
+
+		for (int x = 0; x < main_->sceneNodes_.Size(); x++)
+		{
+			SharedPtr<Node> sceneNode = main_->sceneNodes_[x];
+
+			int index = Random( 0, spawnPoints_.Size() );
+			RespawnNode(sceneNode, index);
+
+			AttachLogicComponents(sceneNode, -1);
+
+			msg_.Clear();
+			msg_.WriteInt(GAMEMODEMSG_RESPAWNNODE);
+			msg_.WriteInt(main_->GetClientID(sceneNode));
+			msg_.WriteInt(nodeIDCounter_);
+			msg_.WriteInt(index);
+			msg_.WriteBool(true);//new client.
+			network_->BroadcastMessage(MSG_GAMEMODEMSG, true, true, msg_);
+		}
+
 		SpawnChicken(node_->GetComponent<ClientInfo>()->clientID_, nodeIDCounter_);
 		nodeIDCounter_++;
+	}
+}
+
+void DotsNetCritsOnline::HandleGetSceneName(StringHash eventType, VariantMap& eventData)
+{
+	VariantMap vm;
+	vm[SetSceneName::P_SCENENAME] = sceneFileName_;
+	SendEvent(E_SETSCENENAME, vm);
+}
+
+void DotsNetCritsOnline::HandleSetSceneVote(StringHash eventType, VariantMap& eventData)
+{
+	Node* sceneNode = (Node*)(eventData[SetSceneVote::P_SCENENODE].GetPtr());
+	String sceneName = eventData[SetSceneVote::P_SCENENAME].GetString();
+
+	sceneNode->GetComponent<SceneVoter>()->selectedFilename_ = sceneName;
+
+	if (main_->network_->IsServerRunning())
+	{
+		sceneVoteCount_++;
+
+		if (sceneVoteCount_ >= main_->sceneNodes_.Size())
+		{
+			sceneVoteCount_ = 0;
+
+			sceneCandidates_.Clear();
+
+			for (int x = 0; x < main_->sceneNodes_.Size(); x++)
+			{
+				String vote = main_->sceneNodes_[x]->GetComponent<SceneVoter>()->selectedFilename_;
+				if (!sceneCandidates_.Contains(vote))
+				{
+					sceneCandidates_[vote] = 1;
+				}
+				else
+				{
+					sceneCandidates_[vote]++;
+				}
+			}
+
+			String topVote = sceneCandidates_.Begin()->first_;
+			int topVoteTally = sceneCandidates_[topVote];
+
+			for (HashMap<String, int>::ConstIterator x = sceneCandidates_.Begin(); x != sceneCandidates_.End(); x++)
+			{
+				if (x->second_ > topVoteTally)
+				{
+					topVote = x->first_;
+					topVoteTally = x->second_;
+				}
+			}
+
+			VectorBuffer msg;
+			msg.WriteInt(node_->GetComponent<ClientInfo>()->clientID_);
+			msg.WriteString("DotsNetCritsOnline");
+			msg.WriteInt(GAMEMODEMSG_LOADSCENE);
+			msg.WriteString(topVote);
+
+			main_->network_->BroadcastMessage(MSG_LCMSG, true, true, msg);
+
+			sceneFileName_ = topVote;
+			LoadScene(sceneFileName_ + ".xml");
+		}
+		else if (main_->sceneNodes_.Size() <= 2)//server and 1 player or just server.
+		{
+			sceneVoteCount_ = 0;
+
+			int randy = Random(0, main_->sceneNodes_.Size());
+
+			String vote = main_->sceneNodes_[randy]->GetComponent<SceneVoter>()->selectedFilename_;
+
+			VectorBuffer msg;
+			msg.WriteInt(node_->GetComponent<ClientInfo>()->clientID_);
+			msg.WriteString("DotsNetCritsOnline");
+			msg.WriteInt(GAMEMODEMSG_LOADSCENE);
+			msg.WriteString(vote);
+
+			main_->network_->BroadcastMessage(MSG_LCMSG, true, true, msg);
+
+			sceneFileName_ = vote;
+			LoadScene(sceneFileName_ + ".xml");
+		}
 	}
 }

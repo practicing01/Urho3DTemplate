@@ -267,6 +267,21 @@ EVENT(E_SETSCENENODEBYINFO, SetSceneNodeByInfo)
 	PARAM(P_SCENENODE, SceneNode);// node pointer
 }
 
+EVENT(E_GETSCENENAME, GetSceneName)
+{
+}
+
+EVENT(E_SETSCENENAME, SetSceneName)
+{
+	PARAM(P_SCENENAME, SceneName);//string
+}
+
+EVENT(E_SETSCENEVOTE, SetSceneVote)
+{
+	PARAM(P_SCENENODE, SceneNode);// node pointer
+	PARAM(P_SCENENAME, SceneName);//string
+}
+
 extern const int GAMEMODEMSG_RESPAWNNODE;
 extern const int GAMEMODEMSG_GETLC;
 extern const int GAMEMODEMSG_SCENEVOTE;
