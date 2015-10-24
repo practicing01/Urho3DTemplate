@@ -53,12 +53,12 @@ void MoveByTouch::Start()
 	{
 		SubscribeToEvent(E_TOUCHEND, HANDLER(MoveByTouch, HandleTouchEnd));
 	}
-
-	/*debugNode_ = node_->GetScene()->CreateChild("moveToDebugNode",LOCAL);
+/*
+	debugNode_ = node_->GetScene()->CreateChild("moveToDebugNode",LOCAL);
 	debugNode_->AddChild(node_->GetChild("modelNode")->Clone());
 	debugNode_->GetChild("modelNode")->RemoveComponent(
-			debugNode_->GetChild("modelNode")->GetComponent<CollisionShape>());*/
-
+			debugNode_->GetChild("modelNode")->GetComponent<CollisionShape>());
+*/
 	isMoving_ = false;
 	speed_ = node_->GetComponent<Speed>()->speed_;
 	speedRamp_ = speed_;
@@ -72,7 +72,7 @@ void MoveByTouch::Start()
 	SubscribeToEvent(E_LCMSG, HANDLER(MoveByTouch, HandleLCMSG));
 	SubscribeToEvent(E_GETLC, HANDLER(MoveByTouch, HandleGetLc));
 
-	SetUpdateEventMask(USE_FIXEDUPDATE);
+	//SetUpdateEventMask(USE_FIXEDUPDATE);
 }
 
 void MoveByTouch::HandleTouchSubscribe(StringHash eventType, VariantMap& eventData)
@@ -90,7 +90,7 @@ void MoveByTouch::HandleTouchUnSubscribe(StringHash eventType, VariantMap& event
 }
 
 void MoveByTouch::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
-{//LOGERRORF("touchend");
+{
 	if (main_->ui_->GetFocusElement() || touchSubscriberCount_)
 	{
 		return;
@@ -136,11 +136,11 @@ void MoveByTouch::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
 }
 
 void MoveByTouch::MoveTo(Vector3 dest, float speed, float speedRamp, float gravity, float gravityRamp, bool rotate, bool sendToServer)
-{//LOGERRORF("moving to");
+{
 	loc_ = node_->GetPosition();
 
 	if (loc_ == dest)
-	{//LOGERRORF("loc == dest");
+	{
 		return;
 	}
 
@@ -222,8 +222,6 @@ void MoveByTouch::MoveTo(Vector3 dest, float speed, float speedRamp, float gravi
 
 void MoveByTouch::FixedUpdate(float timeStep)
 {
-	//LOGERRORF("loop for clientid %d",main_->GetClientID(node_));
-	//LOGERRORF("1");
 	if (!node_->GetScene())
 	{
 		return;
@@ -231,28 +229,12 @@ void MoveByTouch::FixedUpdate(float timeStep)
 
 	PhysicsWorld* pw = node_->GetScene()->GetComponent<PhysicsWorld>();
 
-	if (!pw)
-	{
-		return;
-	}
-
 	Node* modelNode = node_->GetChild("modelNode");
-
-	if (!modelNode)
-	{
-		return;
-	}
 
 	CollisionShape* colshape = modelNode->GetComponent<CollisionShape>();
 
-	if (!colshape)
-	{
-		return;
-	}
-	//LOGERRORF("2");
-	//LOGERRORF("loc %s",loc_.ToString().CString());
 	if (isMoving_ == true)
-	{//LOGERRORF("moving");
+	{
 		if (speedRamp_ > speed_)
 		{
 			speedRamp_ -= timeStep;
@@ -279,9 +261,9 @@ void MoveByTouch::FixedUpdate(float timeStep)
 		}
 		remainingDist_ = (loc_ - dest_).Length();
 
-		Vector3 victoria_ = loc_.Lerp(dest_, inderp_ / remainingDist_);
+		Vector3 victoria = loc_.Lerp(dest_, inderp_ / remainingDist_);
 
-		node_->SetPosition(victoria_);
+		node_->SetPosition(victoria);
 
 		if (remainingDist_ <= 0.1f)
 		{
@@ -289,9 +271,9 @@ void MoveByTouch::FixedUpdate(float timeStep)
 			OnMoveToComplete();
 		}
 	}
-	//LOGERRORF("3");
+
+	//Apply gravity.
 	loc_ = node_->GetPosition();
-	//LOGERRORF("loc %s",loc_.ToString().CString());
 	radius_ = colshape->GetSize().x_;
 	radius_ *= modelNode->GetWorldScale().x_;
 
@@ -299,9 +281,9 @@ void MoveByTouch::FixedUpdate(float timeStep)
 
 	PhysicsRaycastResult raeResult;
 	Ray rae;
-	//rae.origin_ = node_->LocalToWorld(colshape->GetPosition());
 	rae.origin_ = loc_;
-	rae.direction_ = gravity.Normalized();//todo change gravity lc to use a v3
+	rae.origin_.y_ += radius_ * 0.5f;
+	rae.direction_ = gravity.Normalized();
 
 	float gravityStepDist = gravity.Length() * timeStep;
 
@@ -309,20 +291,17 @@ void MoveByTouch::FixedUpdate(float timeStep)
 
 	if (!raeResult.body_)
 	{
-		//LOGERRORF("setting pos");
 		node_->SetPosition(loc_ + ( gravity * timeStep ) );
-		/*LOGERRORF("radius %f, gravity %s, direction %s, stepdist %f, step %s, loc %s, dest %s",
-				radius_, gravity.ToString().CString(),
-				rae.direction_.ToString().CString(),
-				gravityStepDist, ( gravity * timeStep ).ToString().CString(),
-				loc_.ToString().CString(),
-				(loc_ + ( gravity * timeStep )).ToString().CString());*/
 	}
-	/*else
+	else
 	{
-		//LOGERRORF("loc %s",loc_.ToString().CString());
-	}*/
-	//LOGERRORF("4");
+		if (Abs(raeResult.position_.y_ - loc_.y_) > 0.1f)
+		{
+			loc_.y_ = raeResult.position_.y_;
+			node_->SetPosition(loc_);
+		}
+		//debugNode_->SetPosition(raeResult.position_);
+	}
 }
 
 void MoveByTouch::OnMoveToComplete()
@@ -347,7 +326,10 @@ void MoveByTouch::HandleNodeCollision(StringHash eventType, VariantMap& eventDat
 
     MemoryBuffer contacts(eventData[P_CONTACTS].GetBuffer());
     SharedPtr<Node> otherNode = SharedPtr<Node>(static_cast<Node*>(eventData[P_OTHERNODE].GetPtr()));
-    //LOGERRORF("col with %s",otherNode->GetName().CString());
+
+    Vector3 vectoria_ = node_->GetPosition();
+    Vector3 highestContact = vectoria_;
+
     while (!contacts.IsEof())
     {
         Vector3 contactPosition = contacts.ReadVector3();
@@ -355,31 +337,30 @@ void MoveByTouch::HandleNodeCollision(StringHash eventType, VariantMap& eventDat
         float contactDistance = contacts.ReadFloat();
         float contactImpulse = contacts.ReadFloat();
 
-        Vector3 vectoria_ = node_->GetPosition();
-
         float level = Abs(contactNormal.y_);
 
         //debug
-        //debugNode_->SetPosition(vectoria_ + Vector3(0.0f, contactPosition.y_, 0.0f));
         //debugNode_->SetPosition(contactPosition);
         //end debug
 
-        if (level > 0.1f)
-        {//todo check if above height, if so it's a ceiling, don't raise
-        	if (vectoria_.y_ < contactPosition.y_)
+        if (level > 0.1f)//todo change to be gravity independant
+        {
+        	if (contactPosition.y_ > highestContact.y_)
         	{
-        		vectoria_.y_ = contactPosition.y_;
-        		node_->SetPosition(vectoria_);
+        		highestContact = contactPosition;
         	}
         }
         else//wall
         {
-        	vectoria_ -= -node_->GetDirection() * (contactDistance * 1.01f);
+        	vectoria_ += contactNormal * (contactDistance);
         	node_->SetPosition(vectoria_);
         	isMoving_ = false;
-        	OnMoveToComplete();
+        	//OnMoveToComplete();//todo add stopOnCollide param
         }
     }
+
+    vectoria_.y_ = highestContact.y_;
+    node_->SetPosition(vectoria_);
 }
 
 void MoveByTouch::HandleSetLagTime(StringHash eventType, VariantMap& eventData)
@@ -472,9 +453,9 @@ void MoveByTouch::HandleGetLc(StringHash eventType, VariantMap& eventData)
 		float gravityRamp = gravityRamp_ + (gravity_ * lagTime_);
 
 		VectorBuffer msg;
-		msg.WriteInt(main_->GetClientID(node_));
+		msg.WriteInt(main_->GetClientID(node_));//todo change everything to use NodeInfo
 		msg.WriteString("MoveByTouch");
-		//LOGERRORF("sending movement lc from clientid %d", main_->GetClientID(node_));
+
 		if (!isMoving_)
 		{
 			msg.WriteVector3(node_->GetPosition());

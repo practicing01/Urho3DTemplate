@@ -548,8 +548,8 @@ void DotsNetCritsOnline::LoadScene(String fileName)
 			network_->BroadcastMessage(MSG_GAMEMODEMSG, true, true, msg_);
 		}
 
-		SpawnChicken(node_->GetComponent<ClientInfo>()->clientID_, nodeIDCounter_);
-		nodeIDCounter_++;
+		//SpawnChicken(node_->GetComponent<ClientInfo>()->clientID_, nodeIDCounter_);
+		//nodeIDCounter_++;
 	}
 }
 
