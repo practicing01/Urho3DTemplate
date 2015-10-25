@@ -32,13 +32,13 @@
 #include "../../../network/NetworkConstants.h"
 #include "../../../Constants.h"
 
+#include "NodeInfo.h"
+
 Speed::Speed(Context* context, Urho3DPlayer* main) :
 	LogicComponent(context)
 {
 	main_ = main;
-	network_ = GetSubsystem<Network>();
 	speed_ = 10.0f;
-	isServer_ = false;
 }
 
 Speed::~Speed()
@@ -47,66 +47,9 @@ Speed::~Speed()
 
 void Speed::Start()
 {
-	SubscribeToEvent(E_GETCLIENTSPEED, HANDLER(Speed, HandleGetSpeed));
-	SubscribeToEvent(E_SETISSERVER, HANDLER(Speed, HandleSetIsServer));
-	SubscribeToEvent(E_MODIFYCLIENTSPEED, HANDLER(Speed, HandleModifySpeed));
-	SubscribeToEvent(E_SETCLIENTID, HANDLER(Speed, HandleSetClientID));
-	SubscribeToEvent(E_SETCONNECTION, HANDLER(Speed, HandleSetConnection));
-
-	VariantMap vm;
-	SendEvent(E_GETISSERVER, vm);
-
-	vm.Clear();
-	vm[GetClientID::P_NODE] = main_->GetRootNode(node_);
-	SendEvent(E_GETCLIENTID, vm);
-
-	vm.Clear();
-	vm[GetConnection::P_NODE] = main_->GetRootNode(node_);
-	SendEvent(E_GETCONNECTION, vm);
-
 	SubscribeToEvent(E_LCMSG, HANDLER(Speed, HandleLCMSG));
 	SubscribeToEvent(E_GETLC, HANDLER(Speed, HandleGetLc));
-}
-
-void Speed::HandleSetIsServer(StringHash eventType, VariantMap& eventData)
-{
-	isServer_ = eventData[SetIsServer::P_ISSERVER].GetBool();
-	UnsubscribeFromEvent(E_SETISSERVER);
-}
-
-void Speed::HandleSetClientID(StringHash eventType, VariantMap& eventData)
-{
-	Node* clientNode = (Node*)(eventData[SetClientID::P_NODE].GetPtr());
-
-	if (main_->GetSceneNode(clientNode) == node_)
-	{
-		clientID_ = eventData[SetClientID::P_CLIENTID].GetInt();
-		UnsubscribeFromEvent(E_SETCLIENTID);
-	}
-}
-
-void Speed::HandleSetConnection(StringHash eventType, VariantMap& eventData)
-{
-	Node* clientNode = (Node*)(eventData[SetConnection::P_NODE].GetPtr());
-
-	if (main_->GetSceneNode(clientNode) == node_)
-	{
-		conn_ = (Connection*)(eventData[SetConnection::P_CONNECTION].GetPtr());
-		UnsubscribeFromEvent(E_SETCONNECTION);
-	}
-}
-
-void Speed::HandleGetSpeed(StringHash eventType, VariantMap& eventData)
-{
-	Node* clientNode = (Node*)(eventData[GetClientSpeed::P_NODE].GetPtr());
-
-	if (clientNode == node_)
-	{
-		VariantMap vm;
-		vm[SetClientSpeed::P_NODE] = clientNode;
-		vm[SetClientSpeed::P_SPEED] = speed_;
-		SendEvent(E_SETCLIENTSPEED, vm);
-	}
+	SubscribeToEvent(E_MODIFYCLIENTSPEED, HANDLER(Speed, HandleModifySpeed));
 }
 
 void Speed::HandleModifySpeed(StringHash eventType, VariantMap& eventData)
@@ -141,17 +84,18 @@ void Speed::ModifySpeed(float speedMod, int operation, bool sendToServer)
 	if (sendToServer)
 	{
 		msg_.Clear();
-		msg_.WriteInt(clientID_);
+		msg_.WriteInt(node_->GetComponent<NodeInfo>()->clientID_);
 		msg_.WriteString("Speed");
+		msg_.WriteInt(node_->GetComponent<NodeInfo>()->nodeID_);
 		msg_.WriteFloat(speedMod);
 		msg_.WriteInt(operation);
-		if (!isServer_)
+		if (!main_->network_->IsServerRunning())
 		{
-			network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
+			main_->network_->GetServerConnection()->SendMessage(MSG_LCMSG, true, true, msg_);
 		}
 		else
 		{
-			network_->BroadcastMessage(MSG_LCMSG, true, true, msg_);
+			main_->network_->BroadcastMessage(MSG_LCMSG, true, true, msg_);
 		}
 	}
 }
@@ -165,23 +109,28 @@ void Speed::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 
 	if (lc == "Speed")
 	{
-		if (clientID_ == clientID)
+		int nodeID = msg.ReadInt();
+
+		if (node_->GetComponent<NodeInfo>()->clientID_ == clientID
+				&& node_->GetComponent<NodeInfo>()->nodeID_ == nodeID)
 		{
 			float speedMod = msg.ReadFloat();
 			int operation = msg.ReadInt();
 
 			ModifySpeed(speedMod, operation, false);
 
-			if (isServer_)
+			if (main_->network_->IsServerRunning())
 			{
 				msg_.Clear();
-				msg_.WriteInt(clientID_);
+				msg_.WriteInt(clientID);
 				msg_.WriteString("Speed");
+				msg_.WriteInt(nodeID);
 				msg_.WriteFloat(speedMod);
 				msg_.WriteInt(operation);
 
 				VariantMap vm0;
-				vm0[ExclusiveNetBroadcast::P_EXCLUDEDCONNECTION] = conn_;
+				vm0[ExclusiveNetBroadcast::P_EXCLUDEDCONNECTION] =
+						main_->GetConnByClientID(clientID);
 				vm0[ExclusiveNetBroadcast::P_MSG] = msg_.GetBuffer();
 				SendEvent(E_EXCLUSIVENETBROADCAST, vm0);
 			}
@@ -193,13 +142,14 @@ void Speed::HandleGetLc(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[GetLc::P_NODE].GetPtr());
 
-	if (clientNode == node_)
+	if (clientNode != node_)
 	{
 		Connection* conn = (Connection*)(eventData[GetLc::P_CONNECTION].GetPtr());
 
 		msg_.Clear();
-		msg_.WriteInt(clientID_);
+		msg_.WriteInt(node_->GetComponent<NodeInfo>()->clientID_);
 		msg_.WriteString("Speed");
+		msg_.WriteInt(node_->GetComponent<NodeInfo>()->nodeID_);
 		msg_.WriteFloat(speed_);
 		msg_.WriteInt(0);
 		conn->SendMessage(MSG_LCMSG, true, true, msg_);

@@ -129,7 +129,8 @@ void Health::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 				msg_.WriteInt(operation);
 
 				VariantMap vm0;
-				vm0[ExclusiveNetBroadcast::P_EXCLUDEDCONNECTION] = main_->GetConn(node_);//todo solve for npcs
+				vm0[ExclusiveNetBroadcast::P_EXCLUDEDCONNECTION] =
+						main_->GetConnByClientID(clientID);
 				vm0[ExclusiveNetBroadcast::P_MSG] = msg_.GetBuffer();
 				SendEvent(E_EXCLUSIVENETBROADCAST, vm0);
 			}
@@ -141,7 +142,7 @@ void Health::HandleGetLc(StringHash eventType, VariantMap& eventData)
 {
 	Node* clientNode = (Node*)(eventData[GetLc::P_NODE].GetPtr());
 
-	if (clientNode == node_)
+	if (clientNode != node_)
 	{
 		Connection* conn = (Connection*)(eventData[GetLc::P_CONNECTION].GetPtr());
 

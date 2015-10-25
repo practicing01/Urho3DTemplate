@@ -38,6 +38,7 @@
 #include "../../../Constants.h"
 
 #include "Speed.h"
+#include "NodeInfo.h"
 
 ModelController::ModelController(Context* context, Urho3DPlayer* main) :
 	LogicComponent(context)
@@ -315,7 +316,7 @@ void ModelController::LoadPlayer(String modelPath, bool sendToServer)
 	RemoveModelNode();
     XMLFile* xmlFile = main_->cache_->GetResource<XMLFile>(modelPath);
     modelNode_ = node_->GetScene()->InstantiateXML(xmlFile->GetRoot(),
-    		node_->GetPosition(), node_->GetRotation(), LOCAL);
+    		Vector3::ZERO, Quaternion::IDENTITY, LOCAL);
 
     node_->AddChild(modelNode_);
     modelNode_->SetName("modelNode");
@@ -333,11 +334,12 @@ void ModelController::LoadPlayer(String modelPath, bool sendToServer)
     if (sendToServer)
     {
     	VectorBuffer msg;
-    	msg.WriteInt(main_->GetClientID(node_));
+    	msg.WriteInt(node_->GetComponent<NodeInfo>()->clientID_);
     	msg.WriteString("ModelController");
+    	msg.WriteInt(node_->GetComponent<NodeInfo>()->nodeID_);
 
     	msg.WriteInt(0);//Load player.
-    	msg.WriteString(fileName);
+    	msg.WriteString(fileName + ".xml");
 
     	if (!main_->network_->IsServerRunning())
     	{
@@ -429,12 +431,13 @@ void ModelController::HandleGetLc(StringHash eventType, VariantMap& eventData)
 		Connection* conn = (Connection*)(eventData[GetLc::P_CONNECTION].GetPtr());
 
 		VectorBuffer msg;
-		msg.WriteInt(main_->GetClientID(node_));
+		msg.WriteInt(node_->GetComponent<NodeInfo>()->clientID_);
 		msg.WriteString("ModelController");
+    	msg.WriteInt(node_->GetComponent<NodeInfo>()->nodeID_);
 
 		msg.WriteInt(0);//Load player.
 		String fileName = modelNode_->GetVar("fileName").GetString();
-		msg.WriteString(fileName);
+		msg.WriteString(fileName + ".xml");
 		conn->SendMessage(MSG_LCMSG, true, true, msg);
 	}
 }
@@ -448,10 +451,13 @@ void ModelController::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 
 	if (lc == "ModelController")
 	{
-		int myclientID = main_->GetClientID(node_);
-		Connection* myconn = main_->GetConn(node_);
+		int nodeID = msg.ReadInt();
 
-		if (myclientID == clientID)
+		int myclientID = node_->GetComponent<NodeInfo>()->clientID_;
+		int mynodeID = node_->GetComponent<NodeInfo>()->nodeID_;
+		Connection* myconn = main_->GetConnByClientID(myclientID);
+
+		if (myclientID == clientID && mynodeID == nodeID)
 		{
 			int operation = msg.ReadInt();
 
@@ -460,7 +466,6 @@ void ModelController::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 			if (operation == 0)//Load player.
 			{
 				fileName = msg.ReadString();
-
 				LoadPlayer(main_->filesystem_->GetProgramDir()
 				+ "Data/Objects/player/" + fileName, false);
 			}
@@ -481,6 +486,7 @@ void ModelController::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 				VectorBuffer msg;
 				msg.WriteInt(myclientID);
 				msg.WriteString("ModelController");
+				msg.WriteInt(mynodeID);
 
 				msg.WriteInt(operation);
 
@@ -505,8 +511,9 @@ void ModelController::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 void ModelController::NetSendAnimation(String ani)
 {
 	VectorBuffer msg;
-	msg.WriteInt(main_->GetClientID(node_));
+	msg.WriteInt(node_->GetComponent<NodeInfo>()->clientID_);
 	msg.WriteString("ModelController");
+	msg.WriteInt(node_->GetComponent<NodeInfo>()->nodeID_);
 
 	msg.WriteInt(1);//animate player.
 	msg.WriteString(ani);

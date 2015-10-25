@@ -34,6 +34,7 @@
 
 #include "Gravity.h"
 #include "Speed.h"
+#include "NodeInfo.h"
 
 MoveByTouch::MoveByTouch(Context* context, Urho3DPlayer* main) :
 	LogicComponent(context)
@@ -72,7 +73,7 @@ void MoveByTouch::Start()
 	SubscribeToEvent(E_LCMSG, HANDLER(MoveByTouch, HandleLCMSG));
 	SubscribeToEvent(E_GETLC, HANDLER(MoveByTouch, HandleGetLc));
 
-	//SetUpdateEventMask(USE_FIXEDUPDATE);
+	SetUpdateEventMask(USE_FIXEDUPDATE);
 }
 
 void MoveByTouch::HandleTouchSubscribe(StringHash eventType, VariantMap& eventData)
@@ -201,8 +202,9 @@ void MoveByTouch::MoveTo(Vector3 dest, float speed, float speedRamp, float gravi
 	{
 		VectorBuffer msg;
 		msg.Clear();
-		msg.WriteInt(main_->GetClientID(node_));
+		msg.WriteInt(node_->GetComponent<NodeInfo>()->clientID_);
 		msg.WriteString("MoveByTouch");
+		msg.WriteInt(node_->GetComponent<NodeInfo>()->nodeID_);
 		msg.WriteVector3(loc_);
 		msg.WriteVector3(dest_);
 		msg.WriteFloat(speed_);
@@ -366,7 +368,7 @@ void MoveByTouch::HandleNodeCollision(StringHash eventType, VariantMap& eventDat
 void MoveByTouch::HandleSetLagTime(StringHash eventType, VariantMap& eventData)
 {
 	Connection* sender = (Connection*)(eventData[SetLagTime::P_CONNECTION].GetPtr());
-	if (sender == main_->GetConn(node_))
+	if (sender == main_->GetConnByClientID(node_->GetComponent<NodeInfo>()->clientID_))
 	{
 		lagTime_ = eventData[SetLagTime::P_LAGTIME].GetFloat();
 
@@ -383,10 +385,13 @@ void MoveByTouch::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 
 	if (lc == "MoveByTouch")
 	{
-		int myclientID = main_->GetClientID(node_);
-		Connection* myconn = main_->GetConn(node_);
+		int nodeID = msg.ReadInt();
 
-		if (myclientID == clientID)
+		int myclientID = node_->GetComponent<NodeInfo>()->clientID_;
+		int mynodeID = node_->GetComponent<NodeInfo>()->nodeID_;
+		Connection* myconn = main_->GetConnByClientID(myclientID);
+
+		if (myclientID == clientID && mynodeID == nodeID)
 		{
 			Vector3 loc = msg.ReadVector3();
 			Vector3 dest = msg.ReadVector3();
@@ -418,6 +423,7 @@ void MoveByTouch::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 				VectorBuffer msg;
 				msg.WriteInt(myclientID);
 				msg.WriteString("MoveByTouch");
+				msg.WriteInt(mynodeID);
 				msg.WriteVector3(loc);
 				msg.WriteVector3(dest);
 				msg.WriteFloat(speed_);
@@ -453,8 +459,9 @@ void MoveByTouch::HandleGetLc(StringHash eventType, VariantMap& eventData)
 		float gravityRamp = gravityRamp_ + (gravity_ * lagTime_);
 
 		VectorBuffer msg;
-		msg.WriteInt(main_->GetClientID(node_));//todo change everything to use NodeInfo
+		msg.WriteInt(node_->GetComponent<NodeInfo>()->clientID_);
 		msg.WriteString("MoveByTouch");
+		msg.WriteInt(node_->GetComponent<NodeInfo>()->nodeID_);
 
 		if (!isMoving_)
 		{

@@ -55,6 +55,8 @@
 #include "Constants.h"
 #include "GameMenu.h"
 
+#include "gameModes/dotsnetcritsonline/logicComponents/NodeInfo.h"//todo change to a higher directory
+
 DEFINE_APPLICATION_MAIN(Urho3DPlayer);
 
 Urho3DPlayer::Urho3DPlayer(Context* context) :
@@ -397,6 +399,7 @@ void Urho3DPlayer::ClearSceneNodes()
 		sceneNodes_[x]->Remove();
 	}
 	sceneNodes_.Clear();
+	identifiedNodes_.Clear();
 }
 
 int Urho3DPlayer::GetClientID(Node* sceneNode)
@@ -418,6 +421,38 @@ Connection* Urho3DPlayer::GetConn(Node* sceneNode)
 		if (sceneNodes_[x] == sceneNode)
 		{
 			return rootNodes_[x]->GetComponent<ClientInfo>()->connection_;
+		}
+	}
+	return NULL;
+}
+
+Connection* Urho3DPlayer::GetConnByClientID(int clientID)
+{
+	for (int x = 0; x < rootNodes_.Size(); x++)
+	{
+		if (rootNodes_[x]->GetComponent<ClientInfo>()->clientID_ == clientID)
+		{
+			return rootNodes_[x]->GetComponent<ClientInfo>()->connection_;
+		}
+	}
+	return NULL;
+}
+
+Node* Urho3DPlayer::GetIdentifiedNode(String lc, int clientID, int nodeID)
+{
+	for (int x = 0; x < identifiedNodes_.Size(); x++)
+	{
+		NodeInfo* ni = identifiedNodes_[x]->GetComponent<NodeInfo>();
+
+		if (ni->LC_ == lc)
+		{
+			if (ni->clientID_ == clientID)
+			{
+				if (ni->nodeID_ == nodeID)
+				{
+					return identifiedNodes_[x];
+				}
+			}
 		}
 	}
 	return NULL;

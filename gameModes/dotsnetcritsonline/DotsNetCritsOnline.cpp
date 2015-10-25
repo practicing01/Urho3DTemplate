@@ -110,18 +110,17 @@ void DotsNetCritsOnline::HandleNetworkMessage(StringHash eventType, VariantMap& 
         	bool newClient = msg.ReadBool();
 
         	Node* sceneNode = main_->GetSceneNode(clientID);
-//LOGERRORF("got respawn for new clientID %d", clientID);
+
         	if (sceneNode != NULL)
         	{
         		RespawnNode(SharedPtr<Node>(sceneNode), index);
 
         		if (newClient)
-        		{//LOGERRORF("respawned new clientID %d myclientd: %d", clientID, main_->GetClientID(main_->mySceneNode_));
+        		{
     				AttachLogicComponents(SharedPtr<Node>(sceneNode), nodeID);
 
         			if (main_->GetClientID(main_->mySceneNode_) == clientID)
         			{
-        				//LOGERRORF("attaching lc to clientid %d",clientID);
         				msg_.Clear();
             			msg_.WriteInt(GAMEMODEMSG_GETLC);
             			msg_.WriteInt(clientID);
@@ -173,17 +172,18 @@ void DotsNetCritsOnline::HandleNewClientID(StringHash eventType, VariantMap& eve
 	int clientID = eventData[NewClientID::P_CLIENTID].GetInt();
 
 	SharedPtr<Node> sceneNode = SharedPtr<Node>( main_->GetSceneNode(clientID) );
-//LOGERRORF("handling new clientID %d", clientID);
+
 	if (sceneNode != NULL)
 	{
 		if (sceneNode->GetScene() != scene_)
-		{//LOGERRORF("added new clientID sceneNode to scene %d", clientID);
-		scene_->AddChild(sceneNode);
+		{
+			scene_->AddChild(sceneNode);
 		}
 
 		if (isServer_)
-		{//LOGERRORF("telling new clientID %d to respawn", clientID);
+		{
 			Connection* conn = main_->GetConn(sceneNode);
+
 			for (int x = 0; x < main_->sceneNodes_.Size(); x++)
 			{
 				SharedPtr<Node> oldSceneNode = main_->sceneNodes_[x];
@@ -195,7 +195,7 @@ void DotsNetCritsOnline::HandleNewClientID(StringHash eventType, VariantMap& eve
 
 				msg_.Clear();
 				msg_.WriteInt(GAMEMODEMSG_RESPAWNNODE);
-				msg_.WriteInt(main_->GetClientID(oldSceneNode));
+				msg_.WriteInt(oldSceneNode->GetComponent<NodeInfo>()->clientID_);
 				msg_.WriteInt(oldSceneNode->GetComponent<NodeInfo>()->nodeID_);
 				msg_.WriteInt(-1);
 				msg_.WriteBool(true);//new client.
@@ -209,8 +209,8 @@ void DotsNetCritsOnline::HandleNewClientID(StringHash eventType, VariantMap& eve
 
 			msg_.Clear();
 			msg_.WriteInt(GAMEMODEMSG_RESPAWNNODE);
-			msg_.WriteInt(clientID);
-			msg_.WriteInt(nodeIDCounter_);
+			msg_.WriteInt(sceneNode->GetComponent<NodeInfo>()->clientID_);
+			msg_.WriteInt(sceneNode->GetComponent<NodeInfo>()->nodeID_);
 			msg_.WriteInt(index);
 			msg_.WriteBool(true);//new client
 			network_->BroadcastMessage(MSG_GAMEMODEMSG, true, true, msg_);
@@ -258,7 +258,7 @@ void DotsNetCritsOnline::AttachLogicComponents(SharedPtr<Node> sceneNode, int no
 			main_->GetClientID(sceneNode),
 			noedID), 0, LOCAL);
 
-	identifiedNodes_.Push(sceneNode);
+	main_->identifiedNodes_.Push(sceneNode);
 
 	sceneNode->AddComponent(new ModelController(context_, main_), 0, LOCAL);
 	sceneNode->AddComponent(new ThirdPersonCamera(context_, main_), 0, LOCAL);
@@ -294,7 +294,7 @@ void DotsNetCritsOnline::HandleGetIsServer(StringHash eventType, VariantMap& eve
 }
 
 void DotsNetCritsOnline::HandleClientHealthSet(StringHash eventType, VariantMap& eventData)
-{/*
+{
 	if (!isServer_)
 	{
 		return;
@@ -303,22 +303,17 @@ void DotsNetCritsOnline::HandleClientHealthSet(StringHash eventType, VariantMap&
 	targetSceneNode_ = (Node*)(eventData[ModifyClientHealth::P_NODE].GetPtr());
 	int health = eventData[ClientHealthSet::P_HEALTH].GetInt();
 
+	NodeInfo* ni = targetSceneNode_->GetComponent<NodeInfo>();
+
 	if (health <= 0)
 	{
-		SubscribeToEvent(E_SETSCENENODECLIENTID, HANDLER(DotsNetCritsOnline, HandleSetSceneNodeClientID));
-
-		VariantMap vm0;
-		vm0[GetSceneNodeClientID::P_NODE] = targetSceneNode_;
-		SendEvent(E_GETSCENENODECLIENTID, vm0);
-
-		UnsubscribeFromEvent(E_SETSCENENODECLIENTID);
-
 		int index = Random( 0, spawnPoints_.Size() );
 		RespawnNode(SharedPtr<Node>(targetSceneNode_), index);
 
 		msg_.Clear();
 		msg_.WriteInt(GAMEMODEMSG_RESPAWNNODE);
-		msg_.WriteInt(targetSceneNodeClientID_);//todo add nodeID
+		msg_.WriteInt(ni->clientID_);
+		msg_.WriteInt(ni->nodeID_);
 		msg_.WriteInt(index);
 		msg_.WriteBool(false);//old client
 		network_->BroadcastMessage(MSG_GAMEMODEMSG, true, true, msg_);
@@ -331,12 +326,13 @@ void DotsNetCritsOnline::HandleClientHealthSet(StringHash eventType, VariantMap&
 		SendEvent(E_MODIFYCLIENTHEALTH, vm1);
 
 		msg_.Clear();//todo better way of doing this stuff
-		msg_.WriteInt(targetSceneNodeClientID_);
+		msg_.WriteInt(ni->clientID_);
 		msg_.WriteString("Health");
+		msg_.WriteInt(ni->nodeID_);
 		msg_.WriteInt(100);
 		msg_.WriteInt(0);
 		network_->BroadcastMessage(MSG_LCMSG, true, true, msg_);
-	}*/
+	}
 }
 
 void DotsNetCritsOnline::HandleSetSceneNodeClientID(StringHash eventType, VariantMap& eventData)
@@ -358,7 +354,7 @@ void DotsNetCritsOnline::SpawnChicken(int clientID, int nodeID)
 			clientID,
 			nodeIDCounter_), 0, LOCAL);
 
-	identifiedNodes_.Push(chickenNode);
+	main_->identifiedNodes_.Push(chickenNode);
 
 	chickenNode->AddComponent(new ChickenNPC(context_, main_), 0, LOCAL);
 
@@ -408,7 +404,7 @@ void DotsNetCritsOnline::HandleLCMSG(StringHash eventType, VariantMap& eventData
 void DotsNetCritsOnline::HandleSetLagTime(StringHash eventType, VariantMap& eventData)
 {
 	Connection* sender = (Connection*)(eventData[SetLagTime::P_CONNECTION].GetPtr());
-	if (sender == main_->GetConn(node_))
+	if (sender == main_->GetConnByClientID(node_->GetComponent<NodeInfo>()->clientID_))
 	{
 		lagTime_ = eventData[SetLagTime::P_LAGTIME].GetFloat();
 
@@ -424,11 +420,11 @@ void DotsNetCritsOnline::HandleGetLc(StringHash eventType, VariantMap& eventData
 	{
 		Node* chicken;
 
-		for (int x = 0; x < identifiedNodes_.Size(); x++)
+		for (int x = 0; x < main_->identifiedNodes_.Size(); x++)
 		{
-			if (identifiedNodes_[x]->GetName() == "chicken")
+			if (main_->identifiedNodes_[x]->GetName() == "chicken")
 			{
-				chicken = identifiedNodes_[x];
+				chicken = main_->identifiedNodes_[x];
 				break;
 			}
 		}
@@ -526,9 +522,8 @@ void DotsNetCritsOnline::LoadScene(String fileName)
 	}
 
 	if (main_->network_->IsServerRunning())
-	{//LOGERRORF("spawning server player");
+	{
 		nodeIDCounter_ = 0;
-		identifiedNodes_.Clear();
 
 		for (int x = 0; x < main_->sceneNodes_.Size(); x++)
 		{
@@ -541,8 +536,8 @@ void DotsNetCritsOnline::LoadScene(String fileName)
 
 			msg_.Clear();
 			msg_.WriteInt(GAMEMODEMSG_RESPAWNNODE);
-			msg_.WriteInt(main_->GetClientID(sceneNode));
-			msg_.WriteInt(nodeIDCounter_);
+			msg_.WriteInt(sceneNode->GetComponent<NodeInfo>()->clientID_);
+			msg_.WriteInt(sceneNode->GetComponent<NodeInfo>()->nodeID_);
 			msg_.WriteInt(index);
 			msg_.WriteBool(true);//new client.
 			network_->BroadcastMessage(MSG_GAMEMODEMSG, true, true, msg_);

@@ -146,7 +146,7 @@ void Server::HandleClientConnect(StringHash eventType, VariantMap& eventData)
 	msg_.Clear();
 	msg_.WriteInt(clientIDCount_);
 	sender->SendMessage(MSG_MYCLIENTID, true, true, msg_);
-//LOGERRORF("sent new sceneNode clientID %d", clientIDCount_);
+
 	clientIDCount_++;
 }
 
@@ -191,14 +191,13 @@ void Server::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 
 		msg_.WriteString(sceneFileName_);
 		sender->SendMessage(MSG_LOADGAMEMODE, true, true, msg_);
-		//LOGERRORF("told new client to load game mode");
 	}
 	else if (msgID == MSG_LOADEDGAMEMODE)
 	{
 		const PODVector<unsigned char>& data = eventData[P_DATA].GetBuffer();
 		MemoryBuffer msg(data);
 		int clientID = msg.ReadInt();
-//LOGERRORF("client loaded gamemode %d",clientID);
+
 		VariantMap vm;
 		vm[ClientSync::P_CONNECTION] = sender;
 		vm[ClientSync::P_CLIENTID] = clientID;

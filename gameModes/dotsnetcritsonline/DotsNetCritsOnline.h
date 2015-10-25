@@ -60,7 +60,6 @@ public:
 	int targetSceneNodeClientID_;
 
 	int nodeIDCounter_;
-	Vector<Node*> identifiedNodes_;
 
 	float lagTime_;
 

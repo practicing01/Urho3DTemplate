@@ -58,7 +58,7 @@ void Client::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 			main_->myRootNode_->RemoveComponent(
 					main_->myRootNode_->GetComponent<ClientInfo>());
 		}
-		main_->myRootNode_->AddComponent(new ClientInfo(context_, main_, clientID, NULL), 0, LOCAL);
+		main_->myRootNode_->AddComponent(new ClientInfo(context_, main_, clientID, network_->GetServerConnection()), 0, LOCAL);
 
 		if (main_->myRootNode_->HasComponent<NetPulse>())
 		{
@@ -66,7 +66,7 @@ void Client::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 					main_->myRootNode_->GetComponent<NetPulse>());
 		}
 		main_->myRootNode_->AddComponent(new NetPulse(context_, main_), 0, LOCAL);
-//LOGERRORF("got my clientID %d", clientID);
+
 		msg_.Clear();
 		network_->GetServerConnection()->SendMessage(MSG_GOTMYCLIENTID, true, true, msg_);
 	}
@@ -85,7 +85,7 @@ void Client::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 		main_->scene_->AddChild(rootNode);
 
 		rootNode->AddComponent(new ClientInfo(context_, main_, clientID, NULL), 0, LOCAL);
-//LOGERRORF("got newclientid msg, clientid %d", clientID);
+
 		VariantMap vm;
 		vm[NewClientID::P_CLIENTID] = clientID;
 		SendEvent(E_NEWCLIENTID, vm);
@@ -111,7 +111,7 @@ void Client::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 		String sceneFileName = msg.ReadString();
 
 		LoadGameMode(gameMode, sceneFileName);
-//LOGERRORF("got loadgame msg, sending my clientid %d",main_->myRootNode_->GetComponent<ClientInfo>()->clientID_);
+
 		msg_.Clear();
 		msg_.WriteInt(main_->myRootNode_->GetComponent<ClientInfo>()->clientID_);
 		network_->GetServerConnection()->SendMessage(MSG_LOADEDGAMEMODE, true, true, msg_);

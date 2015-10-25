@@ -64,8 +64,10 @@ public:
     Node* GetSceneNode(Node* rootNode);
     int GetClientID(Node* sceneNode);
     Connection* GetConn(Node* sceneNode);
+    Connection* GetConnByClientID(int clientID);
     bool IsLocalClient(Node* sceneNode);
     void RecursiveAddGuiTargets(UIElement* ele);
+    Node* GetIdentifiedNode(String lc, int clientID, int nodeID);
     void ClearRootNodes();
     void ClearSceneNodes();
 
@@ -86,6 +88,7 @@ public:
     SharedPtr<Node> mySceneNode_;
     Vector< SharedPtr<Node> > rootNodes_;//Parallel array with sceneNodes_.
     Vector< SharedPtr<Node> > sceneNodes_;
+	Vector<Node*> identifiedNodes_;
 
 	VectorBuffer msg_;
 
