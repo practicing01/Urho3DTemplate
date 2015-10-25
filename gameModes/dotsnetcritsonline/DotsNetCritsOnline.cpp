@@ -417,7 +417,7 @@ void DotsNetCritsOnline::HandleSetLagTime(StringHash eventType, VariantMap& even
 }
 
 void DotsNetCritsOnline::HandleGetLc(StringHash eventType, VariantMap& eventData)
-{
+{return;
 	Node* clientNode = (Node*)(eventData[GetLc::P_NODE].GetPtr());
 
 	if (clientNode != node_)

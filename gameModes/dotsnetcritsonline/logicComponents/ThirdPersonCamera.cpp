@@ -115,71 +115,44 @@ void ThirdPersonCamera::HandlePostUpdate(StringHash eventType, VariantMap& event
 
 	Vector3 camOrigin = originNode_->GetPosition();
 
-	float rayDistance = originNode_->GetPosition().Length();
-
-	Ray cameraRay;
-
-	cameraRay.origin_ = originNode_->GetWorldPosition();
-
-	cameraRay.direction_ = originNode_->GetWorldDirection();
-
-	Vector3 victoria_ = cameraNode_->GetPosition();
-	float remainingDist = (victoria_ - originNode_->GetPosition()).Length();
+	Vector3 victoria = cameraNode_->GetPosition();
+	float remainingDist = (victoria - originNode_->GetPosition()).Length();
 	float inderp = (remainingDist * timeStep);
 
 	if (remainingDist > distanceDampener_)
 	{
-		cameraNode_->SetPosition(victoria_.Lerp(camOrigin, inderp / remainingDist));
+		cameraNode_->SetPosition(victoria.Lerp(camOrigin, inderp / remainingDist));
 		if ( (cameraNode_->GetPosition() - camOrigin).Length() < distanceDampener_)
 		{
 			cameraNode_->SetPosition(camOrigin);
 		}
 	}
 
+	Ray cameraRay;
+
+	victoria = node_->GetWorldPosition() + Vector3(0.0f, beeBox.Size().y_, 0.0f);
+
+	cameraRay.origin_ = victoria;
+
+	//cameraRay.direction_ = -originNode_->GetWorldDirection();
+	cameraRay.direction_ = (cameraNode_->GetWorldPosition() - victoria).Normalized();
+
+	//float rayDistance = originNode_->GetPosition().Length();
+	float rayDistance = (cameraNode_->GetPosition()).Length();
+
 	PODVector<RayQueryResult> results;
 
 	RayOctreeQuery query(results, cameraRay, RAY_TRIANGLE, rayDistance,
-			DRAWABLE_GEOMETRY);
+			DRAWABLE_GEOMETRY, 254);//todo define viewmasks
 
-	node_->GetScene()->GetComponent<Octree>()->Raycast(query);
+	node_->GetScene()->GetComponent<Octree>()->RaycastSingle(query);
 
 	if (results.Size())
 	{
-		int index = -1;
-		for (int x = 0; x < results.Size(); x++)
-		{
-			if (results[x].drawable_->GetViewMask()!=1)//todo define viewmasks
-			{
-				if (index > -1)
-				{
-					if (results[x].distance_ > results[index].distance_)
-					{
-						index = x;
-					}
-				}
-				else
-				{
-					index = x;
-				}
-			}
-		}
-
-		if (index > -1)
-		{
-			/*if (results[index].position_.y_ < cameraRay.origin_.y_)
-			{
-				victoria_ = results[index].position_;
-				victoria_.y_ += vectoria.y_;
-				cameraNode_->SetWorldPosition(victoria_);
-			}
-			else*/
-			{
-				cameraNode_->SetWorldPosition(results[index].position_);
-				/*cameraNode_->SetWorldPosition(results[index].position_ +
-						(results[index].normal_ * (rayDistance - results[index].distance_)));*/
-			}
-		}
+		Vector3 vectoria = results[0].position_;
+		vectoria.y_ = cameraNode_->GetWorldPosition().y_;
+		cameraNode_->SetWorldPosition(vectoria);
 	}
 
-	cameraNode_->LookAt(node_->GetWorldPosition() + Vector3(0.0f, beeBox.Size().y_, 0.0f));
+	cameraNode_->LookAt(victoria);
 }
