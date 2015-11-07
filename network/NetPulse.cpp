@@ -37,9 +37,9 @@ NetPulse::~NetPulse()
 
 void NetPulse::Start()
 {
-	SubscribeToEvent(E_UPDATE, HANDLER(NetPulse, HandleUpdate));
-	SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(NetPulse, HandleNetworkMessage));
-	SubscribeToEvent(E_GETLAGTIME, HANDLER(NetPulse, HandleGetLagTime));
+	SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(NetPulse, HandleUpdate));
+	SubscribeToEvent(E_NETWORKMESSAGE, URHO3D_HANDLER(NetPulse, HandleNetworkMessage));
+	SubscribeToEvent(E_GETLAGTIME, URHO3D_HANDLER(NetPulse, HandleGetLagTime));
 }
 
 void NetPulse::ClearConnections()

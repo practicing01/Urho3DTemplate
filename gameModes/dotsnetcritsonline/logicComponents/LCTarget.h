@@ -19,7 +19,7 @@
 
 class LCTarget : public Object
 {
-	OBJECT(LCTarget, Object);
+	URHO3D_OBJECT(LCTarget, Object);
 public:
 	LCTarget(Context* context);
 	~LCTarget();

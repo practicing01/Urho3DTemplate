@@ -32,10 +32,10 @@ MasterServer::MasterServer(Context* context, Urho3DPlayer* main) :
 
 	network_ = GetSubsystem<Network>();
 
-	SubscribeToEvent(E_CLIENTDISCONNECTED, HANDLER(MasterServer, HandleClientDisconnect));
-	SubscribeToEvent(E_CLIENTCONNECTED, HANDLER(MasterServer, HandleClientConnect));
-	SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(MasterServer, HandleNetworkMessage));
-	SubscribeToEvent(E_UPDATE, HANDLER(MasterServer, HandleUpdate));
+	SubscribeToEvent(E_CLIENTDISCONNECTED, URHO3D_HANDLER(MasterServer, HandleClientDisconnect));
+	SubscribeToEvent(E_CLIENTCONNECTED, URHO3D_HANDLER(MasterServer, HandleClientConnect));
+	SubscribeToEvent(E_NETWORKMESSAGE, URHO3D_HANDLER(MasterServer, HandleNetworkMessage));
+	SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(MasterServer, HandleUpdate));
 }
 
 MasterServer::~MasterServer()

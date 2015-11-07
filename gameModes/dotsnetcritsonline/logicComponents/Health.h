@@ -19,7 +19,7 @@ using namespace Urho3D;
 
 class Health : public LogicComponent
 {
-	OBJECT(Health, LogicComponent);
+	URHO3D_OBJECT(Health, LogicComponent);
 public:
 	Health(Context* context, Urho3DPlayer* main);
 	~Health();

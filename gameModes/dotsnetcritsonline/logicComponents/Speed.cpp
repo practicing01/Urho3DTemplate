@@ -47,9 +47,9 @@ Speed::~Speed()
 
 void Speed::Start()
 {
-	SubscribeToEvent(E_LCMSG, HANDLER(Speed, HandleLCMSG));
-	SubscribeToEvent(E_GETLC, HANDLER(Speed, HandleGetLc));
-	SubscribeToEvent(E_MODIFYCLIENTSPEED, HANDLER(Speed, HandleModifySpeed));
+	SubscribeToEvent(E_LCMSG, URHO3D_HANDLER(Speed, HandleLCMSG));
+	SubscribeToEvent(E_GETLC, URHO3D_HANDLER(Speed, HandleGetLc));
+	SubscribeToEvent(E_MODIFYCLIENTSPEED, URHO3D_HANDLER(Speed, HandleModifySpeed));
 }
 
 void Speed::HandleModifySpeed(StringHash eventType, VariantMap& eventData)

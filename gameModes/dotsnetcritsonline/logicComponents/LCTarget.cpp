@@ -90,7 +90,7 @@ void LCTarget::HandleSetModelNodeBySceneNode(StringHash eventType, VariantMap& e
 
 void LCTarget::GetSceneNodeByModelNode()
 {
-	SubscribeToEvent(E_SETSCENENODEBYMODELNODE, HANDLER(LCTarget, HandleSetSceneNodeByModelNode));
+	SubscribeToEvent(E_SETSCENENODEBYMODELNODE, URHO3D_HANDLER(LCTarget, HandleSetSceneNodeByModelNode));
 
 	VariantMap vm;
 	vm[GetSceneNodeByModelNode::P_NODE] = modelNode_;
@@ -99,7 +99,7 @@ void LCTarget::GetSceneNodeByModelNode()
 
 void LCTarget::GetSceneNodeClientID()
 {
-	SubscribeToEvent(E_SETSCENENODECLIENTID, HANDLER(LCTarget, HandleSetSceneNodeClientID));
+	SubscribeToEvent(E_SETSCENENODECLIENTID, URHO3D_HANDLER(LCTarget, HandleSetSceneNodeClientID));
 
 	VariantMap vm;
 	vm[GetSceneNodeClientID::P_NODE] = sceneNode_;
@@ -108,7 +108,7 @@ void LCTarget::GetSceneNodeClientID()
 
 void LCTarget::GetModelNodeBySceneNode()
 {
-	SubscribeToEvent(E_SETMODELNODEBYSCENENODE, HANDLER(LCTarget, HandleSetModelNodeBySceneNode));
+	SubscribeToEvent(E_SETMODELNODEBYSCENENODE, URHO3D_HANDLER(LCTarget, HandleSetModelNodeBySceneNode));
 
 	VariantMap vm;
 	vm[GetModelNodeBySceneNode::P_NODE] = sceneNode_;

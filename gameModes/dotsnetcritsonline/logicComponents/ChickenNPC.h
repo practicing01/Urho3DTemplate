@@ -19,7 +19,7 @@ using namespace Urho3D;
 
 class ChickenNPC : public LogicComponent
 {
-	OBJECT(ChickenNPC, LogicComponent);
+	URHO3D_OBJECT(ChickenNPC, LogicComponent);
 public:
 	ChickenNPC(Context* context, Urho3DPlayer* main);
 	~ChickenNPC();

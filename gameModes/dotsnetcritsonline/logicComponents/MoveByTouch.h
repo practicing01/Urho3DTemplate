@@ -21,7 +21,7 @@ using namespace Urho3D;
 
 class MoveByTouch : public LogicComponent
 {
-	OBJECT(MoveByTouch, LogicComponent);
+	URHO3D_OBJECT(MoveByTouch, LogicComponent);
 public:
 	MoveByTouch(Context* context, Urho3DPlayer* main);
 	~MoveByTouch();

@@ -20,7 +20,7 @@ using namespace Urho3D;
 
 class RotateTo : public LogicComponent
 {
-	OBJECT(RotateTo, LogicComponent);
+	URHO3D_OBJECT(RotateTo, LogicComponent);
 public:
 	RotateTo(Context* context, Urho3DPlayer* main);
 	~RotateTo();

@@ -18,6 +18,10 @@
 #include <Urho3D/Resource/ResourceCache.h>
 #include <Urho3D/Scene/Scene.h>
 #include <Urho3D/IO/Log.h>
+#include <Urho3D/LuaScript/LuaFile.h>
+#include <Urho3D/LuaScript/LuaFunction.h>
+#include <Urho3D/LuaScript/LuaScript.h>
+#include <Urho3D/LuaScript/LuaScriptInstance.h>
 #include <Urho3D/Graphics/Viewport.h>
 #include <Urho3D/Audio/Audio.h>
 #include <Urho3D/Audio/Sound.h>
@@ -40,6 +44,7 @@
 #include "logicComponents/MoveByTouch.h"
 #include "logicComponents/ChickenNPC.h"
 #include "logicComponents/SceneVoter.h"
+#include "logicComponents/SkillbarMenu.h"
 
 DotsNetCritsOnline::DotsNetCritsOnline(Context* context, Urho3DPlayer* main, bool isServer, String defaultScene) :
 	LogicComponent(context)
@@ -59,8 +64,8 @@ DotsNetCritsOnline::DotsNetCritsOnline(Context* context, Urho3DPlayer* main, boo
 	GAMEMODEMSG_SPAWNCHICKEN = 0;
 	GAMEMODEMSG_LOADSCENE = 1;
 
-	//SubscribeToEvent(E_POSTRENDERUPDATE, HANDLER(DotsNetCritsOnline, HandlePostRenderUpdate));
-	SubscribeToEvent(E_GETISSERVER, HANDLER(DotsNetCritsOnline, HandleGetIsServer));
+	//SubscribeToEvent(E_POSTRENDERUPDATE, URHO3D_HANDLER(DotsNetCritsOnline, HandlePostRenderUpdate));
+	SubscribeToEvent(E_GETISSERVER, URHO3D_HANDLER(DotsNetCritsOnline, HandleGetIsServer));
 }
 
 DotsNetCritsOnline::~DotsNetCritsOnline()
@@ -77,14 +82,16 @@ void DotsNetCritsOnline::Start()
 
 	LoadScene(sceneFileName_);
 
-	SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(DotsNetCritsOnline, HandleNetworkMessage));
-	SubscribeToEvent(E_GAMEMENUDISPLAY, HANDLER(DotsNetCritsOnline, HandleDisplayMenu));
-	SubscribeToEvent(E_NEWCLIENTID, HANDLER(DotsNetCritsOnline, HandleNewClientID));
-	SubscribeToEvent(E_CLIENTHEALTHSET, HANDLER(DotsNetCritsOnline, HandleClientHealthSet));
-	SubscribeToEvent(E_LCMSG, HANDLER(DotsNetCritsOnline, HandleLCMSG));
-	SubscribeToEvent(E_GETLC, HANDLER(DotsNetCritsOnline, HandleGetLc));
-	SubscribeToEvent(E_GETSCENENAME, HANDLER(DotsNetCritsOnline, HandleGetSceneName));
-	SubscribeToEvent(E_SETSCENEVOTE, HANDLER(DotsNetCritsOnline, HandleSetSceneVote));
+	LoadInitScripts();
+
+	SubscribeToEvent(E_NETWORKMESSAGE, URHO3D_HANDLER(DotsNetCritsOnline, HandleNetworkMessage));
+	SubscribeToEvent(E_GAMEMENUDISPLAY, URHO3D_HANDLER(DotsNetCritsOnline, HandleDisplayMenu));
+	SubscribeToEvent(E_NEWCLIENTID, URHO3D_HANDLER(DotsNetCritsOnline, HandleNewClientID));
+	SubscribeToEvent(E_CLIENTHEALTHSET, URHO3D_HANDLER(DotsNetCritsOnline, HandleClientHealthSet));
+	SubscribeToEvent(E_LCMSG, URHO3D_HANDLER(DotsNetCritsOnline, HandleLCMSG));
+	SubscribeToEvent(E_GETLC, URHO3D_HANDLER(DotsNetCritsOnline, HandleGetLc));
+	SubscribeToEvent(E_GETSCENENAME, URHO3D_HANDLER(DotsNetCritsOnline, HandleGetSceneName));
+	SubscribeToEvent(E_SETSCENEVOTE, URHO3D_HANDLER(DotsNetCritsOnline, HandleSetSceneVote));
 }
 
 void DotsNetCritsOnline::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
@@ -267,6 +274,7 @@ void DotsNetCritsOnline::AttachLogicComponents(SharedPtr<Node> sceneNode, int no
 	sceneNode->AddComponent(new RotateTo(context_, main_), 0, LOCAL);
 	sceneNode->AddComponent(new MoveByTouch(context_, main_), 0, LOCAL);
 	sceneNode->AddComponent(new SceneVoter(context_, main_), 0, LOCAL);
+	sceneNode->AddComponent(new SkillbarMenu(context_, main_), 0, LOCAL);
 }
 
 void DotsNetCritsOnline::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData)
@@ -382,7 +390,7 @@ void DotsNetCritsOnline::HandleLCMSG(StringHash eventType, VariantMap& eventData
 		int gmMSG = msg.ReadInt();
 
 		Connection* myconn = main_->GetConn(node_);
-		SubscribeToEvent(E_SETLAGTIME, HANDLER(DotsNetCritsOnline, HandleSetLagTime));
+		SubscribeToEvent(E_SETLAGTIME, URHO3D_HANDLER(DotsNetCritsOnline, HandleSetLagTime));
 
 		VariantMap vm;
 		vm[GetLagTime::P_CONNECTION] = myconn;
@@ -436,7 +444,7 @@ void DotsNetCritsOnline::HandleGetLc(StringHash eventType, VariantMap& eventData
 
 		Connection* conn = (Connection*)(eventData[GetLc::P_CONNECTION].GetPtr());
 
-		SubscribeToEvent(E_SETLAGTIME, HANDLER(DotsNetCritsOnline, HandleSetLagTime));
+		SubscribeToEvent(E_SETLAGTIME, URHO3D_HANDLER(DotsNetCritsOnline, HandleSetLagTime));
 
 		VariantMap vm;
 		vm[GetLagTime::P_CONNECTION] = conn;
@@ -566,7 +574,7 @@ void DotsNetCritsOnline::HandleSetSceneVote(StringHash eventType, VariantMap& ev
 	{
 		sceneVoteCount_++;
 
-		if (sceneVoteCount_ >= main_->sceneNodes_.Size())
+		if (sceneVoteCount_ >= main_->sceneNodes_.Size() - 1)//todo add rcon voting
 		{
 			sceneVoteCount_ = 0;
 
@@ -627,5 +635,22 @@ void DotsNetCritsOnline::HandleSetSceneVote(StringHash eventType, VariantMap& ev
 			sceneFileName_ = vote;
 			LoadScene(sceneFileName_ + ".xml");
 		}
+	}
+}
+
+void DotsNetCritsOnline::LoadInitScripts()
+{
+	String fileName;
+	Vector<String> fileNames;
+	main_->filesystem_->ScanDir(fileNames,
+			main_->filesystem_->GetProgramDir() + "Data/LuaScripts/onInit/",
+			"*.lua", SCAN_FILES, false);
+
+	for (int x = 0; x < fileNames.Size(); x++)
+	{
+		fileName = fileNames[x].Substring(0, fileNames[x].Find("."));
+		LuaScriptInstance* instance = node_->CreateComponent<LuaScriptInstance>();
+		instance->CreateObject(main_->cache_->GetResource<LuaFile>(
+				"Data/LuaScripts/onInit/" + fileNames[x]), fileName);
 	}
 }

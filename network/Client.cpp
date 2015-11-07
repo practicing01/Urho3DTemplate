@@ -38,7 +38,7 @@ Client::~Client()
 
 void Client::Start()
 {
-	SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(Client, HandleNetworkMessage));
+	SubscribeToEvent(E_NETWORKMESSAGE, URHO3D_HANDLER(Client, HandleNetworkMessage));
 }
 
 void Client::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)

@@ -36,11 +36,11 @@ ClientInfo::~ClientInfo()
 
 void ClientInfo::Start()
 {
-	SubscribeToEvent(E_CLIENTSYNC, HANDLER(ClientInfo, HandleClientSync));
-	//SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(ClientInfo, HandleNetworkMessage));
-	SubscribeToEvent(E_GETCLIENTID, HANDLER(ClientInfo, HandleGetClientID));
-	SubscribeToEvent(E_GETCONNECTION, HANDLER(ClientInfo, HandleGetConnection));
-	SubscribeToEvent(E_GETSCENENODECLIENTID, HANDLER(ClientInfo, HandleGetSceneNodeClientID));
+	SubscribeToEvent(E_CLIENTSYNC, URHO3D_HANDLER(ClientInfo, HandleClientSync));
+	//SubscribeToEvent(E_NETWORKMESSAGE, URHO3D_HANDLER(ClientInfo, HandleNetworkMessage));
+	SubscribeToEvent(E_GETCLIENTID, URHO3D_HANDLER(ClientInfo, HandleGetClientID));
+	SubscribeToEvent(E_GETCONNECTION, URHO3D_HANDLER(ClientInfo, HandleGetConnection));
+	SubscribeToEvent(E_GETSCENENODECLIENTID, URHO3D_HANDLER(ClientInfo, HandleGetSceneNodeClientID));
 }
 
 void ClientInfo::HandleClientSync(StringHash eventType, VariantMap& eventData)

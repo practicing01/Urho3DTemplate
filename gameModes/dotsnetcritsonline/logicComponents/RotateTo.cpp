@@ -46,12 +46,12 @@ RotateTo::~RotateTo()
 
 void RotateTo::Start()
 {
-	//SubscribeToEvent(E_SETCLIENTMODELNODE, HANDLER(RotateTo, HandleSetClientModelNode));
-	SubscribeToEvent(E_ROTATEMODELNODE, HANDLER(RotateTo, HandleRotateModelNode));
+	//SubscribeToURHO3D_EVENT(E_SETCLIENTMODELNODE, URHO3D_HANDLER(RotateTo, HandleSetClientModelNode));
+	SubscribeToEvent(E_ROTATEMODELNODE, URHO3D_HANDLER(RotateTo, HandleRotateModelNode));
 
 	/*VariantMap vm;
 	vm[GetClientModelNode::P_NODE] = node_;
-	SendEvent(E_GETCLIENTMODELNODE, vm);*/
+	SendURHO3D_EVENT(E_GETCLIENTMODELNODE, vm);*/
 
 	SetUpdateEventMask(USE_FIXEDUPDATE);
 }

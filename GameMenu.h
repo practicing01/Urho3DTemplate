@@ -22,7 +22,7 @@ using namespace Urho3D;
 
 class GameMenu : public LogicComponent
 {
-	OBJECT(GameMenu, LogicComponent);
+	URHO3D_OBJECT(GameMenu, LogicComponent);
 public:
 	GameMenu(Context* context, Urho3DPlayer* main);
 	~GameMenu();

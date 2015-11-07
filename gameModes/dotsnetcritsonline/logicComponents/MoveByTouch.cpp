@@ -50,10 +50,6 @@ MoveByTouch::~MoveByTouch()
 
 void MoveByTouch::Start()
 {
-	if (main_->IsLocalClient(node_))
-	{
-		SubscribeToEvent(E_TOUCHEND, HANDLER(MoveByTouch, HandleTouchEnd));
-	}
 /*
 	debugNode_ = node_->GetScene()->CreateChild("moveToDebugNode",LOCAL);
 	debugNode_->AddChild(node_->GetChild("modelNode")->Clone());
@@ -66,12 +62,17 @@ void MoveByTouch::Start()
 	gravity_ = node_->GetComponent<Gravity>()->gravity_;
 	gravityRamp_ = gravity_;
 
-	SubscribeToEvent(E_TOUCHSUBSCRIBE, HANDLER(MoveByTouch, HandleTouchSubscribe));
-	SubscribeToEvent(E_TOUCHUNSUBSCRIBE, HANDLER(MoveByTouch, HandleTouchUnSubscribe));
-	SubscribeToEvent(E_MOVEMODELNODE, HANDLER(MoveByTouch, HandleMoveModelNode));
-	SubscribeToEvent(node_->GetChild("modelNode"), E_NODECOLLISION, HANDLER(MoveByTouch, HandleNodeCollision));
-	SubscribeToEvent(E_LCMSG, HANDLER(MoveByTouch, HandleLCMSG));
-	SubscribeToEvent(E_GETLC, HANDLER(MoveByTouch, HandleGetLc));
+	SubscribeToEvent(E_TOUCHSUBSCRIBE, URHO3D_HANDLER(MoveByTouch, HandleTouchSubscribe));
+	SubscribeToEvent(E_TOUCHUNSUBSCRIBE, URHO3D_HANDLER(MoveByTouch, HandleTouchUnSubscribe));
+	SubscribeToEvent(E_MOVEMODELNODE, URHO3D_HANDLER(MoveByTouch, HandleMoveModelNode));
+	SubscribeToEvent(node_->GetChild("modelNode"), E_NODECOLLISION, URHO3D_HANDLER(MoveByTouch, HandleNodeCollision));
+	SubscribeToEvent(E_LCMSG, URHO3D_HANDLER(MoveByTouch, HandleLCMSG));
+	SubscribeToEvent(E_GETLC, URHO3D_HANDLER(MoveByTouch, HandleGetLc));
+
+	if (main_->IsLocalClient(node_))
+	{
+		SubscribeToEvent(E_TOUCHEND, URHO3D_HANDLER(MoveByTouch, HandleTouchEnd));
+	}
 
 	SetUpdateEventMask(USE_FIXEDUPDATE);
 }
@@ -232,6 +233,11 @@ void MoveByTouch::FixedUpdate(float timeStep)
 	PhysicsWorld* pw = node_->GetScene()->GetComponent<PhysicsWorld>();
 
 	Node* modelNode = node_->GetChild("modelNode");
+
+	if (!modelNode)
+	{
+		return;
+	}
 
 	CollisionShape* colshape = modelNode->GetComponent<CollisionShape>();
 
@@ -400,7 +406,7 @@ void MoveByTouch::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 			float gravity = msg.ReadFloat();
 			float gravityRamp = msg.ReadFloat();
 
-			SubscribeToEvent(E_SETLAGTIME, HANDLER(MoveByTouch, HandleSetLagTime));
+			SubscribeToEvent(E_SETLAGTIME, URHO3D_HANDLER(MoveByTouch, HandleSetLagTime));
 
 			VariantMap vm;
 			vm[GetLagTime::P_CONNECTION] = myconn;
@@ -448,7 +454,7 @@ void MoveByTouch::HandleGetLc(StringHash eventType, VariantMap& eventData)
 	{
 		Connection* conn = (Connection*)(eventData[GetLc::P_CONNECTION].GetPtr());
 
-		SubscribeToEvent(E_SETLAGTIME, HANDLER(MoveByTouch, HandleSetLagTime));
+		SubscribeToEvent(E_SETLAGTIME, URHO3D_HANDLER(MoveByTouch, HandleSetLagTime));
 
 		VariantMap vm;
 		vm[GetLagTime::P_CONNECTION] = conn;

@@ -20,7 +20,7 @@ using namespace Urho3D;
 
 class ThirdPersonCamera : public LogicComponent
 {
-	OBJECT(ThirdPersonCamera, LogicComponent);
+	URHO3D_OBJECT(ThirdPersonCamera, LogicComponent);
 public:
 	ThirdPersonCamera(Context* context, Urho3DPlayer* main);
 	~ThirdPersonCamera();

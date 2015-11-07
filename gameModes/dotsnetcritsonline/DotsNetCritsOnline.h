@@ -19,7 +19,7 @@ using namespace Urho3D;
 
 class DotsNetCritsOnline : public LogicComponent
 {
-	OBJECT(DotsNetCritsOnline, LogicComponent);
+	URHO3D_OBJECT(DotsNetCritsOnline, LogicComponent);
 public:
 	DotsNetCritsOnline(Context* context, Urho3DPlayer* main, bool isServer, String defaultScene);
 	~DotsNetCritsOnline();
@@ -40,6 +40,7 @@ public:
 	void LoadScene(String fileName);
 	void HandleGetSceneName(StringHash eventType, VariantMap& eventData);
 	void HandleSetSceneVote(StringHash eventType, VariantMap& eventData);
+	void LoadInitScripts();
 
 	Urho3DPlayer* main_;
 

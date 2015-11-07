@@ -32,6 +32,7 @@
 #include <Urho3D/Input/Input.h>
 #include <Urho3D/UI/ListView.h>
 #include <Urho3D/IO/Log.h>
+#include <Urho3D/LuaScript/LuaScript.h>
 #include <Urho3D/Core/Main.h>
 #include <Urho3D/IO/MemoryBuffer.h>
 #include <Urho3D/Network/Network.h>
@@ -57,7 +58,7 @@
 
 #include "gameModes/dotsnetcritsonline/logicComponents/NodeInfo.h"//todo change to a higher directory
 
-DEFINE_APPLICATION_MAIN(Urho3DPlayer);
+URHO3D_DEFINE_APPLICATION_MAIN(Urho3DPlayer);
 
 Urho3DPlayer::Urho3DPlayer(Context* context) :
     		Application(context)
@@ -77,6 +78,9 @@ void Urho3DPlayer::Setup()
 void Urho3DPlayer::Start()
 {
 	SetRandomSeed(GetSubsystem<Time>()->GetTimeSinceEpoch());
+
+	context_->RegisterSubsystem(new LuaScript(context_));
+
 	input_ = GetSubsystem<Input>();
 	input_->SetMouseVisible(true);
 	input_->SetTouchEmulation(true);
@@ -111,7 +115,7 @@ void Urho3DPlayer::Start()
 	{
 		if (!engine_->IsHeadless())
 		{
-			SubscribeToEvent(E_RESIZED, HANDLER(Urho3DPlayer, HandleElementResize));
+			SubscribeToEvent(E_RESIZED, URHO3D_HANDLER(Urho3DPlayer, HandleElementResize));
 			myRootNode_->AddComponent(new GameMenu(context_, this), 0, LOCAL);
 
 			VariantMap vm;
@@ -123,7 +127,7 @@ void Urho3DPlayer::Start()
 	}
 	else//Client
 	{
-		SubscribeToEvent(E_RESIZED, HANDLER(Urho3DPlayer, HandleElementResize));
+		SubscribeToEvent(E_RESIZED, URHO3D_HANDLER(Urho3DPlayer, HandleElementResize));
 
 		myRootNode_->AddComponent(new GameMenu(context_, this), 0, LOCAL);
 
@@ -147,10 +151,10 @@ void Urho3DPlayer::Stop()
 void Urho3DPlayer::SubscribeToEvents()
 {
 	// Subscribe HandleUpdate() function for processing update events
-	//SubscribeToEvent(E_UPDATE, HANDLER(Urho3DPlayer, HandleUpdate));
+	//SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(Urho3DPlayer, HandleUpdate));
 
-	//SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(Urho3DPlayer, HandleNetworkMessage));
-	SubscribeToEvent(E_KEYDOWN, HANDLER(Urho3DPlayer, HandleKeyDown));
+	//SubscribeToEvent(E_NETWORKMESSAGE, URHO3D_HANDLER(Urho3DPlayer, HandleNetworkMessage));
+	SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(Urho3DPlayer, HandleKeyDown));
 }
 
 void Urho3DPlayer::HandleUpdate(StringHash eventType, VariantMap& eventData)

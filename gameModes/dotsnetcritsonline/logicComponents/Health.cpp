@@ -36,9 +36,9 @@ Health::~Health()
 
 void Health::Start()
 {
-	SubscribeToEvent(E_LCMSG, HANDLER(Health, HandleLCMSG));
-	SubscribeToEvent(E_GETLC, HANDLER(Health, HandleGetLc));
-	SubscribeToEvent(E_MODIFYCLIENTHEALTH, HANDLER(Health, HandleModifyHealth));
+	SubscribeToEvent(E_LCMSG, URHO3D_HANDLER(Health, HandleLCMSG));
+	SubscribeToEvent(E_GETLC, URHO3D_HANDLER(Health, HandleGetLc));
+	SubscribeToEvent(E_MODIFYCLIENTHEALTH, URHO3D_HANDLER(Health, HandleModifyHealth));
 }
 
 void Health::HandleModifyHealth(StringHash eventType, VariantMap& eventData)

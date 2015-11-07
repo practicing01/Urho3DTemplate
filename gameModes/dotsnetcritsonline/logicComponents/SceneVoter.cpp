@@ -59,7 +59,7 @@ void SceneVoter::Start()
 		main_->RecursiveAddGuiTargets(menuButt_);
 		main_->ElementRecursiveResize(menuButt_);
 
-		SubscribeToEvent(menuButt_, E_RELEASED, HANDLER(SceneVoter, HandleButtonRelease));
+		SubscribeToEvent(menuButt_, E_RELEASED, URHO3D_HANDLER(SceneVoter, HandleButtonRelease));
 
 		menu_ = main_->ui_->LoadLayout(main_->cache_->GetResource<XMLFile>("UI/SceneVoteMenu.xml"));
 		main_->ui_->GetRoot()->AddChild(menu_);
@@ -71,10 +71,10 @@ void SceneVoter::Start()
 		filenameList_ = menu_->GetChild("fileNames", true);
 		voteButt_ = menu_->GetChild("Vote", true);
 
-		SubscribeToEvent(voteButt_, E_RELEASED, HANDLER(SceneVoter, HandleButtonRelease));
+		SubscribeToEvent(voteButt_, E_RELEASED, URHO3D_HANDLER(SceneVoter, HandleButtonRelease));
 
-		SubscribeToEvent(filenameList_, E_ITEMSELECTED, HANDLER(SceneVoter, HandleItemSelected));
-		SubscribeToEvent(filenameList_, E_ITEMDESELECTED, HANDLER(SceneVoter, HandleItemDeselected));
+		SubscribeToEvent(filenameList_, E_ITEMSELECTED, URHO3D_HANDLER(SceneVoter, HandleItemSelected));
+		SubscribeToEvent(filenameList_, E_ITEMDESELECTED, URHO3D_HANDLER(SceneVoter, HandleItemDeselected));
 	}
 }
 

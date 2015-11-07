@@ -19,7 +19,7 @@ using namespace Urho3D;
 
 class SceneVoter : public LogicComponent
 {
-	OBJECT(SceneVoter, LogicComponent);
+	URHO3D_OBJECT(SceneVoter, LogicComponent);
 public:
 	SceneVoter(Context* context, Urho3DPlayer* main);
 	~SceneVoter();

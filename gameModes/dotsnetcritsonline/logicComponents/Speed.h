@@ -19,7 +19,7 @@ using namespace Urho3D;
 
 class Speed : public LogicComponent
 {
-	OBJECT(Speed, LogicComponent);
+	URHO3D_OBJECT(Speed, LogicComponent);
 public:
 	Speed(Context* context, Urho3DPlayer* main);
 	~Speed();

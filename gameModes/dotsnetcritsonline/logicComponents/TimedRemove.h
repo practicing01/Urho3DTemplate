@@ -19,7 +19,7 @@ using namespace Urho3D;
 
 class TimedRemove : public LogicComponent
 {
-	OBJECT(TimedRemove, LogicComponent);
+	URHO3D_OBJECT(TimedRemove, LogicComponent);
 public:
 	TimedRemove(Context* context, Urho3DPlayer* main, float lifeTime);
 	~TimedRemove();

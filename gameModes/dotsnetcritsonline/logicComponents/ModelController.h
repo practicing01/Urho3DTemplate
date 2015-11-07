@@ -19,7 +19,7 @@ using namespace Urho3D;
 
 class ModelController : public LogicComponent
 {
-	OBJECT(ModelController, LogicComponent);
+	URHO3D_OBJECT(ModelController, LogicComponent);
 public:
 	ModelController(Context* context, Urho3DPlayer* main);
 	~ModelController();

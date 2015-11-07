@@ -45,7 +45,7 @@ Gravity::~Gravity()
 
 void Gravity::Start()
 {
-	SubscribeToEvent(E_GETCLIENTGRAVITY, HANDLER(Gravity, HandleGetGravity));
+	SubscribeToEvent(E_GETCLIENTGRAVITY, URHO3D_HANDLER(Gravity, HandleGetGravity));
 }
 
 void Gravity::HandleGetGravity(StringHash eventType, VariantMap& eventData)

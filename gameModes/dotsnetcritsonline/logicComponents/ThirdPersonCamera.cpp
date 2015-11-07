@@ -81,7 +81,7 @@ void ThirdPersonCamera::Start()
 
 	distanceDampener_ = 0.1f;
 
-	//SubscribeToEvent(E_POSTUPDATE, HANDLER(ThirdPersonCamera, HandlePostUpdate));
+	//SubscribeToURHO3D_EVENT(E_POSTUPDATE, URHO3D_HANDLER(ThirdPersonCamera, HandlePostUpdate));
 }
 
 void ThirdPersonCamera::HandlePostUpdate(StringHash eventType, VariantMap& eventData)

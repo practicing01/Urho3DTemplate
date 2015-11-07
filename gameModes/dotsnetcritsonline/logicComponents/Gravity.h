@@ -19,7 +19,7 @@ using namespace Urho3D;
 
 class Gravity : public LogicComponent
 {
-	OBJECT(Gravity, LogicComponent);
+	URHO3D_OBJECT(Gravity, LogicComponent);
 public:
 	Gravity(Context* context, Urho3DPlayer* main);
 	~Gravity();

@@ -63,10 +63,10 @@ void ModelController::Start()
 {
 	modelNode_ = NULL;
 	LoadDefaultPlayer();
-	//SubscribeToEvent(E_UPDATE, HANDLER(ModelController, HandleUpdate));
-	SubscribeToEvent(E_ANIMATESCENENODE, HANDLER(ModelController, HandleAnimateSceneNode));
-	SubscribeToEvent(E_LCMSG, HANDLER(ModelController, HandleLCMSG));
-	SubscribeToEvent(E_GETLC, HANDLER(ModelController, HandleGetLc));
+	//SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(ModelController, HandleUpdate));
+	SubscribeToEvent(E_ANIMATESCENENODE, URHO3D_HANDLER(ModelController, HandleAnimateSceneNode));
+	SubscribeToEvent(E_LCMSG, URHO3D_HANDLER(ModelController, HandleLCMSG));
+	SubscribeToEvent(E_GETLC, URHO3D_HANDLER(ModelController, HandleGetLc));
 
 	if (main_->IsLocalClient(node_) && !main_->engine_->IsHeadless())
 	{
@@ -75,7 +75,7 @@ void ModelController::Start()
 		main_->RecursiveAddGuiTargets(menuButt_);
 		main_->ElementRecursiveResize(menuButt_);
 
-		SubscribeToEvent(menuButt_, E_RELEASED, HANDLER(ModelController, HandleButtonRelease));
+		SubscribeToEvent(menuButt_, E_RELEASED, URHO3D_HANDLER(ModelController, HandleButtonRelease));
 
 		menu_ = main_->ui_->LoadLayout(main_->cache_->GetResource<XMLFile>("UI/modelControllerMenu.xml"));
 		main_->ui_->GetRoot()->AddChild(menu_);
@@ -91,18 +91,18 @@ void ModelController::Start()
 		loadButt_ = menu_->GetChild("load", true);
 		playButt_ = menu_->GetChild("play", true);
 
-		SubscribeToEvent(bindButt_, E_RELEASED, HANDLER(ModelController, HandleButtonRelease));
-		SubscribeToEvent(loadButt_, E_RELEASED, HANDLER(ModelController, HandleButtonRelease));
-		SubscribeToEvent(playButt_, E_RELEASED, HANDLER(ModelController, HandleButtonRelease));
+		SubscribeToEvent(bindButt_, E_RELEASED, URHO3D_HANDLER(ModelController, HandleButtonRelease));
+		SubscribeToEvent(loadButt_, E_RELEASED, URHO3D_HANDLER(ModelController, HandleButtonRelease));
+		SubscribeToEvent(playButt_, E_RELEASED, URHO3D_HANDLER(ModelController, HandleButtonRelease));
 
-		SubscribeToEvent(filenameList_, E_ITEMSELECTED, HANDLER(ModelController, HandleItemSelected));
-		SubscribeToEvent(filenameList_, E_ITEMDESELECTED, HANDLER(ModelController, HandleItemDeselected));
-		SubscribeToEvent(aniList_, E_ITEMSELECTED, HANDLER(ModelController, HandleItemSelected));
-		SubscribeToEvent(aniList_, E_ITEMDESELECTED, HANDLER(ModelController, HandleItemDeselected));
+		SubscribeToEvent(filenameList_, E_ITEMSELECTED, URHO3D_HANDLER(ModelController, HandleItemSelected));
+		SubscribeToEvent(filenameList_, E_ITEMDESELECTED, URHO3D_HANDLER(ModelController, HandleItemDeselected));
+		SubscribeToEvent(aniList_, E_ITEMSELECTED, URHO3D_HANDLER(ModelController, HandleItemSelected));
+		SubscribeToEvent(aniList_, E_ITEMDESELECTED, URHO3D_HANDLER(ModelController, HandleItemDeselected));
 
-		SubscribeToEvent(keyLineEdit_, E_TEXTFINISHED, HANDLER(ModelController, HandleTextFinished));
+		SubscribeToEvent(keyLineEdit_, E_TEXTFINISHED, URHO3D_HANDLER(ModelController, HandleTextFinished));
 
-		SubscribeToEvent(E_KEYDOWN, HANDLER(ModelController, HandleKeyDown));
+		SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(ModelController, HandleKeyDown));
 
 		XMLFile* xmlFile = main_->cache_->GetResource<XMLFile>("Objects/boundKeys.xml");
 		boundKeys_ = main_->scene_->InstantiateXML(xmlFile->GetRoot(), Vector3::ZERO, Quaternion(), LOCAL);

@@ -13,273 +13,273 @@
 
 using namespace Urho3D;
 
-EVENT(E_GAMEMENUDISPLAY, GameMenuDisplay)
+URHO3D_EVENT(E_GAMEMENUDISPLAY, GameMenuDisplay)
 {
-	PARAM(P_STATE, State);// bool
+	URHO3D_PARAM(P_STATE, State);// bool
 }
 
-EVENT(E_NEWCLIENTID, NewClientID)
+URHO3D_EVENT(E_NEWCLIENTID, NewClientID)
 {
-	PARAM(P_CLIENTID, ClientID);// int
+	URHO3D_PARAM(P_CLIENTID, ClientID);// int
 }
 
-EVENT(E_GAMEMODEREMOVED, GameModeRemoved)
-{
-}
-
-EVENT(E_GETCLIENTCAMERA, GetClientCamera)
-{
-	PARAM(P_NODE, Node);// node pointer
-}
-
-EVENT(E_SETCLIENTCAMERA, SetClientCamera)
-{
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_CAMERANODE, CameraNode);// node pointer
-}
-
-EVENT(E_TOUCHSUBSCRIBE, TouchSubscribe)
+URHO3D_EVENT(E_GAMEMODEREMOVED, GameModeRemoved)
 {
 }
 
-EVENT(E_TOUCHUNSUBSCRIBE, TouchUnSubscribe)
+URHO3D_EVENT(E_GETCLIENTCAMERA, GetClientCamera)
+{
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+}
+
+URHO3D_EVENT(E_SETCLIENTCAMERA, SetClientCamera)
+{
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_CAMERANODE, CameraNode);// node pointer
+}
+
+URHO3D_EVENT(E_TOUCHSUBSCRIBE, TouchSubscribe)
 {
 }
 
-EVENT(E_GETCLIENTSPEED, GetClientSpeed)
-{
-	PARAM(P_NODE, Node);// node pointer
-}
-
-EVENT(E_SETCLIENTSPEED, SetClientSpeed)
-{
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_SPEED, Speed);// float
-}
-
-EVENT(E_GETCLIENTGRAVITY, GetClientGravity)
-{
-	PARAM(P_NODE, Node);// node pointer
-}
-
-EVENT(E_SETCLIENTGRAVITY, SetClientGravity)
-{
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_GRAVITY, Gravity);// float
-}
-
-EVENT(E_GETCLIENTMODELNODE, GetClientModelNode)
-{
-	PARAM(P_NODE, Node);// node pointer
-}
-
-EVENT(E_SETCLIENTMODELNODE, SetClientModelNode)
-{
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_MODELNODE, ModelNode);// node pointer
-}
-
-EVENT(E_RESPAWNSCENENODE, RespawnSceneNode)
-{
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_POSITION, Position);// Vector3
-	PARAM(P_ROTATION, Rotation);// Quaternion
-}
-
-EVENT(E_ROTATEMODELNODE, RotateModelNode)
-{
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_ROTATION, Rotation);// Quaternion
-	PARAM(P_SPEED, Speed);// float
-	PARAM(P_SPEEDRAMP, SpeedRamp);// float
-	PARAM(P_STOPONCOMPLETION, StopOnCompletion);// bool
-}
-
-EVENT(E_ANIMATESCENENODE, AnimateSceneNode)
-{
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_ANIMATION, Animation);// string
-	PARAM(P_LOOP, Loop);// bool
-	PARAM(P_LAYER, Layer);// unsigned char
-}
-
-EVENT(E_GETCLIENTID, GetClientID)
-{
-	PARAM(P_NODE, Node);// node pointer
-}
-
-EVENT(E_SETCLIENTID, SetClientID)
-{
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_CLIENTID, ClientID);// int
-}
-
-EVENT(E_LCMSG, LcMsg)
-{
-	PARAM(P_DATA, Data);// Buffer (PODVector)
-}
-
-EVENT(E_GETLAGTIME, GetLagTime)
-{
-	PARAM(P_CONNECTION, Connection);// Connection pointer
-}
-
-EVENT(E_SETLAGTIME, SetLagTime)
-{
-	PARAM(P_CONNECTION, Connection);// Connection pointer
-	PARAM(P_LAGTIME, LagTime);// float
-}
-
-EVENT(E_GETCONNECTION, GetConnection)
-{
-	PARAM(P_NODE, Node);// node pointer
-}
-
-EVENT(E_SETCONNECTION, SetConnection)
-{
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_CONNECTION, Connection);// connection pointer
-}
-
-EVENT(E_GETISSERVER, GetIsServer)
+URHO3D_EVENT(E_TOUCHUNSUBSCRIBE, TouchUnSubscribe)
 {
 }
 
-EVENT(E_SETISSERVER, SetIsServer)
+URHO3D_EVENT(E_GETCLIENTSPEED, GetClientSpeed)
 {
-	PARAM(P_ISSERVER, IsServer);// bool
+	URHO3D_PARAM(P_NODE, Node);// node pointer
 }
 
-EVENT(E_EXCLUSIVENETBROADCAST, ExclusiveNetBroadcast)
+URHO3D_EVENT(E_SETCLIENTSPEED, SetClientSpeed)
 {
-	PARAM(P_EXCLUDEDCONNECTION, ExcludedConnection);// connection pointer
-	PARAM(P_MSG, Msg);// Buffer
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_SPEED, Speed);// float
 }
 
-EVENT(E_GETLC, GetLc)
+URHO3D_EVENT(E_GETCLIENTGRAVITY, GetClientGravity)
 {
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_CONNECTION, Connection);// connection pointer
+	URHO3D_PARAM(P_NODE, Node);// node pointer
 }
 
-EVENT(E_GETSCENENODEBYMODELNODE, GetSceneNodeByModelNode)
+URHO3D_EVENT(E_SETCLIENTGRAVITY, SetClientGravity)
 {
-	PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_GRAVITY, Gravity);// float
 }
 
-EVENT(E_SETSCENENODEBYMODELNODE, SetSceneNodeByModelNode)
+URHO3D_EVENT(E_GETCLIENTMODELNODE, GetClientModelNode)
 {
-	PARAM(P_MODELNODE, ModelNode);// node pointer
-	PARAM(P_SCENENODE, SceneNode);// node pointer
+	URHO3D_PARAM(P_NODE, Node);// node pointer
 }
 
-EVENT(E_GETSCENENODECLIENTID, GetSceneNodeClientID)
+URHO3D_EVENT(E_SETCLIENTMODELNODE, SetClientModelNode)
 {
-	PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_MODELNODE, ModelNode);// node pointer
 }
 
-EVENT(E_SETSCENENODECLIENTID, SetSceneNodeClientID)
+URHO3D_EVENT(E_RESPAWNSCENENODE, RespawnSceneNode)
 {
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_CLIENTID, ClientID);// int
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_POSITION, Position);// Vector3
+	URHO3D_PARAM(P_ROTATION, Rotation);// Quaternion
 }
 
-EVENT(E_GETMODELNODEBYSCENENODE, GetModelNodeBySceneNode)
+URHO3D_EVENT(E_ROTATEMODELNODE, RotateModelNode)
 {
-	PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_ROTATION, Rotation);// Quaternion
+	URHO3D_PARAM(P_SPEED, Speed);// float
+	URHO3D_PARAM(P_SPEEDRAMP, SpeedRamp);// float
+	URHO3D_PARAM(P_STOPONCOMPLETION, StopOnCompletion);// bool
 }
 
-EVENT(E_SETMODELNODEBYSCENENODE, SetModelNodeBySceneNode)
+URHO3D_EVENT(E_ANIMATESCENENODE, AnimateSceneNode)
 {
-	PARAM(P_SCENENODE, SceneNode);// node pointer
-	PARAM(P_MODELNODE, ModelNode);// node pointer
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_ANIMATION, Animation);// string
+	URHO3D_PARAM(P_LOOP, Loop);// bool
+	URHO3D_PARAM(P_LAYER, Layer);// unsigned char
 }
 
-EVENT(E_MODIFYCLIENTSPEED, ModifyClientSpeed)
+URHO3D_EVENT(E_GETCLIENTID, GetClientID)
 {
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_SPEED, Speed);// float
-	PARAM(P_OPERATION, Operation);// char
-	PARAM(P_SENDTOSERVER, SendToServer);// bool
+	URHO3D_PARAM(P_NODE, Node);// node pointer
 }
 
-EVENT(E_GETCLIENTHEALTH, GetClientHealth)
+URHO3D_EVENT(E_SETCLIENTID, SetClientID)
 {
-	PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_CLIENTID, ClientID);// int
 }
 
-EVENT(E_SETCLIENTHEALTH, SetClientHealth)
+URHO3D_EVENT(E_LCMSG, LcMsg)
 {
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_HEALTH, Health);// float
+	URHO3D_PARAM(P_DATA, Data);// Buffer (PODVector)
 }
 
-EVENT(E_MODIFYCLIENTHEALTH, ModifyClientHealth)
+URHO3D_EVENT(E_GETLAGTIME, GetLagTime)
 {
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_HEALTH, Health);// int
-	PARAM(P_OPERATION, Operation);// char
-	PARAM(P_SENDTOSERVER, SendToServer);// bool
+	URHO3D_PARAM(P_CONNECTION, Connection);// Connection pointer
 }
 
-EVENT(E_CLIENTHEALTHSET, ClientHealthSet)
+URHO3D_EVENT(E_SETLAGTIME, SetLagTime)
 {
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_HEALTH, Health);// int
+	URHO3D_PARAM(P_CONNECTION, Connection);// Connection pointer
+	URHO3D_PARAM(P_LAGTIME, LagTime);// float
 }
 
-EVENT(E_MOVEMODELNODE, MoveModelNode)
+URHO3D_EVENT(E_GETCONNECTION, GetConnection)
 {
-	PARAM(P_NODE, Node);// node pointer
-	PARAM(P_DEST, Dest);// Vector3
-	PARAM(P_SPEED, Speed);// float
-	PARAM(P_SPEEDRAMP, SpeedRamp);// float
-	PARAM(P_GRAVITY, Gravity);// float
-	PARAM(P_GRAVITYRAMP, GravityRamp);// float
-	PARAM(P_STOPONCOMPLETION, StopOnCompletion);// bool
-	PARAM(P_ROTATE, Rotate);// bool
-	PARAM(P_SENDTOSERVER, SendToServer);// bool
+	URHO3D_PARAM(P_NODE, Node);// node pointer
 }
 
-EVENT(E_SOUNDREQUEST, SoundRequest)
+URHO3D_EVENT(E_SETCONNECTION, SetConnection)
 {
-   PARAM(P_NODE, Node);
-   PARAM(P_SOUNDTYPE, SoundType);
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_CONNECTION, Connection);// connection pointer
 }
 
-EVENT(E_SCENEOBJECTMOVETOCOMPLETE, SceneObjectMoveToComplete)
-{
-   PARAM(P_NODE, Node);
-}
-
-EVENT(E_GETSCENENODEBYINFO, GetSceneNodeByInfo)
-{
-	PARAM(P_LC, LC);// LC string
-	PARAM(P_CLIENTID, ClientID);// int
-	PARAM(P_NODEID, NodeID);// int
-}
-
-EVENT(E_SETSCENENODEBYINFO, SetSceneNodeByInfo)
-{
-	PARAM(P_LC, LC);// LC string
-	PARAM(P_CLIENTID, ClientID);// int
-	PARAM(P_NODEID, NodeID);// int
-	PARAM(P_SCENENODE, SceneNode);// node pointer
-}
-
-EVENT(E_GETSCENENAME, GetSceneName)
+URHO3D_EVENT(E_GETISSERVER, GetIsServer)
 {
 }
 
-EVENT(E_SETSCENENAME, SetSceneName)
+URHO3D_EVENT(E_SETISSERVER, SetIsServer)
 {
-	PARAM(P_SCENENAME, SceneName);//string
+	URHO3D_PARAM(P_ISSERVER, IsServer);// bool
 }
 
-EVENT(E_SETSCENEVOTE, SetSceneVote)
+URHO3D_EVENT(E_EXCLUSIVENETBROADCAST, ExclusiveNetBroadcast)
 {
-	PARAM(P_SCENENODE, SceneNode);// node pointer
-	PARAM(P_SCENENAME, SceneName);//string
+	URHO3D_PARAM(P_EXCLUDEDCONNECTION, ExcludedConnection);// connection pointer
+	URHO3D_PARAM(P_MSG, Msg);// Buffer
+}
+
+URHO3D_EVENT(E_GETLC, GetLc)
+{
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_CONNECTION, Connection);// connection pointer
+}
+
+URHO3D_EVENT(E_GETSCENENODEBYMODELNODE, GetSceneNodeByModelNode)
+{
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+}
+
+URHO3D_EVENT(E_SETSCENENODEBYMODELNODE, SetSceneNodeByModelNode)
+{
+	URHO3D_PARAM(P_MODELNODE, ModelNode);// node pointer
+	URHO3D_PARAM(P_SCENENODE, SceneNode);// node pointer
+}
+
+URHO3D_EVENT(E_GETSCENENODECLIENTID, GetSceneNodeClientID)
+{
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+}
+
+URHO3D_EVENT(E_SETSCENENODECLIENTID, SetSceneNodeClientID)
+{
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_CLIENTID, ClientID);// int
+}
+
+URHO3D_EVENT(E_GETMODELNODEBYSCENENODE, GetModelNodeBySceneNode)
+{
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+}
+
+URHO3D_EVENT(E_SETMODELNODEBYSCENENODE, SetModelNodeBySceneNode)
+{
+	URHO3D_PARAM(P_SCENENODE, SceneNode);// node pointer
+	URHO3D_PARAM(P_MODELNODE, ModelNode);// node pointer
+}
+
+URHO3D_EVENT(E_MODIFYCLIENTSPEED, ModifyClientSpeed)
+{
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_SPEED, Speed);// float
+	URHO3D_PARAM(P_OPERATION, Operation);// char
+	URHO3D_PARAM(P_SENDTOSERVER, SendToServer);// bool
+}
+
+URHO3D_EVENT(E_GETCLIENTHEALTH, GetClientHealth)
+{
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+}
+
+URHO3D_EVENT(E_SETCLIENTHEALTH, SetClientHealth)
+{
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_HEALTH, Health);// float
+}
+
+URHO3D_EVENT(E_MODIFYCLIENTHEALTH, ModifyClientHealth)
+{
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_HEALTH, Health);// int
+	URHO3D_PARAM(P_OPERATION, Operation);// char
+	URHO3D_PARAM(P_SENDTOSERVER, SendToServer);// bool
+}
+
+URHO3D_EVENT(E_CLIENTHEALTHSET, ClientHealthSet)
+{
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_HEALTH, Health);// int
+}
+
+URHO3D_EVENT(E_MOVEMODELNODE, MoveModelNode)
+{
+	URHO3D_PARAM(P_NODE, Node);// node pointer
+	URHO3D_PARAM(P_DEST, Dest);// Vector3
+	URHO3D_PARAM(P_SPEED, Speed);// float
+	URHO3D_PARAM(P_SPEEDRAMP, SpeedRamp);// float
+	URHO3D_PARAM(P_GRAVITY, Gravity);// float
+	URHO3D_PARAM(P_GRAVITYRAMP, GravityRamp);// float
+	URHO3D_PARAM(P_STOPONCOMPLETION, StopOnCompletion);// bool
+	URHO3D_PARAM(P_ROTATE, Rotate);// bool
+	URHO3D_PARAM(P_SENDTOSERVER, SendToServer);// bool
+}
+
+URHO3D_EVENT(E_SOUNDREQUEST, SoundRequest)
+{
+   URHO3D_PARAM(P_NODE, Node);
+   URHO3D_PARAM(P_SOUNDTYPE, SoundType);
+}
+
+URHO3D_EVENT(E_SCENEOBJECTMOVETOCOMPLETE, SceneObjectMoveToComplete)
+{
+   URHO3D_PARAM(P_NODE, Node);
+}
+
+URHO3D_EVENT(E_GETSCENENODEBYINFO, GetSceneNodeByInfo)
+{
+	URHO3D_PARAM(P_LC, LC);// LC string
+	URHO3D_PARAM(P_CLIENTID, ClientID);// int
+	URHO3D_PARAM(P_NODEID, NodeID);// int
+}
+
+URHO3D_EVENT(E_SETSCENENODEBYINFO, SetSceneNodeByInfo)
+{
+	URHO3D_PARAM(P_LC, LC);// LC string
+	URHO3D_PARAM(P_CLIENTID, ClientID);// int
+	URHO3D_PARAM(P_NODEID, NodeID);// int
+	URHO3D_PARAM(P_SCENENODE, SceneNode);// node pointer
+}
+
+URHO3D_EVENT(E_GETSCENENAME, GetSceneName)
+{
+}
+
+URHO3D_EVENT(E_SETSCENENAME, SetSceneName)
+{
+	URHO3D_PARAM(P_SCENENAME, SceneName);//string
+}
+
+URHO3D_EVENT(E_SETSCENEVOTE, SetSceneVote)
+{
+	URHO3D_PARAM(P_SCENENODE, SceneNode);// node pointer
+	URHO3D_PARAM(P_SCENENAME, SceneName);//string
 }
 
 extern const int GAMEMODEMSG_RESPAWNNODE;

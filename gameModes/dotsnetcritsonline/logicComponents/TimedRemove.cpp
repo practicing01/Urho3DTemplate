@@ -46,7 +46,7 @@ TimedRemove::~TimedRemove()
 
 void TimedRemove::Start()
 {
-	SubscribeToEvent(E_UPDATE, HANDLER(TimedRemove, HandleUpdate));
+	SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(TimedRemove, HandleUpdate));
 }
 
 void TimedRemove::HandleUpdate(StringHash eventType, VariantMap& eventData)

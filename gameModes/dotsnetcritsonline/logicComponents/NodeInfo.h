@@ -19,7 +19,7 @@ using namespace Urho3D;
 
 class NodeInfo : public LogicComponent
 {
-	OBJECT(NodeInfo, LogicComponent);
+	URHO3D_OBJECT(NodeInfo, LogicComponent);
 public:
 	NodeInfo(Context* context, Urho3DPlayer* main, String LC, int clientID, int nodeID);
 	~NodeInfo();

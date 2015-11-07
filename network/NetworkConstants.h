@@ -11,10 +11,10 @@
 
 using namespace Urho3D;
 
-EVENT(E_CLIENTSYNC, ClientSync)
+URHO3D_EVENT(E_CLIENTSYNC, ClientSync)
 {
-	PARAM(P_CONNECTION, Connection);// Connection pointer
-	PARAM(P_CLIENTID, ClientID);// int
+	URHO3D_PARAM(P_CONNECTION, Connection);// Connection pointer
+	URHO3D_PARAM(P_CLIENTID, ClientID);// int
 }
 
 extern const int MSG_PUSHSERVER;

@@ -37,13 +37,13 @@ Server::Server(Context* context, Urho3DPlayer* main) :
 
 	sceneFileName_ = "";
 
-    SubscribeToEvent(E_SERVERCONNECTED, HANDLER(Server, HandleServerConnect));
-    SubscribeToEvent(E_SERVERDISCONNECTED, HANDLER(Server, HandleServerDisconnect));
-    SubscribeToEvent(E_CONNECTFAILED, HANDLER(Server, HandleConnectFailed));
-	SubscribeToEvent(E_CLIENTDISCONNECTED, HANDLER(Server, HandleClientDisconnect));
-	SubscribeToEvent(E_CLIENTCONNECTED, HANDLER(Server, HandleClientConnect));
-	SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(Server, HandleNetworkMessage));
-	SubscribeToEvent(E_EXCLUSIVENETBROADCAST, HANDLER(Server, HandleExclusiveNetBroadcast));
+    SubscribeToEvent(E_SERVERCONNECTED, URHO3D_HANDLER(Server, HandleServerConnect));
+    SubscribeToEvent(E_SERVERDISCONNECTED, URHO3D_HANDLER(Server, HandleServerDisconnect));
+    SubscribeToEvent(E_CONNECTFAILED, URHO3D_HANDLER(Server, HandleConnectFailed));
+	SubscribeToEvent(E_CLIENTDISCONNECTED, URHO3D_HANDLER(Server, HandleClientDisconnect));
+	SubscribeToEvent(E_CLIENTCONNECTED, URHO3D_HANDLER(Server, HandleClientConnect));
+	SubscribeToEvent(E_NETWORKMESSAGE, URHO3D_HANDLER(Server, HandleNetworkMessage));
+	SubscribeToEvent(E_EXCLUSIVENETBROADCAST, URHO3D_HANDLER(Server, HandleExclusiveNetBroadcast));
 }
 
 Server::~Server()
@@ -185,7 +185,7 @@ void Server::HandleNetworkMessage(StringHash eventType, VariantMap& eventData)
 		msg_.Clear();
 		msg_.WriteString(gameMode_);
 
-		SubscribeToEvent(E_SETSCENENAME, HANDLER(Server, HandleSetSceneName));
+		SubscribeToEvent(E_SETSCENENAME, URHO3D_HANDLER(Server, HandleSetSceneName));
 		VariantMap vm;
 		SendEvent(E_GETSCENENAME, vm);
 

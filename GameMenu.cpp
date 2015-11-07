@@ -70,21 +70,21 @@ void GameMenu::Start()
 	address_ = gameMenu_->GetChild("address", true);
 	ipLineEdit_ = gameMenu_->GetChild("IPLineEdit", true);
 
-	SubscribeToEvent(serverName_, E_ITEMSELECTED, HANDLER(GameMenu, HandleItemSelected));
-	SubscribeToEvent(gameMode_, E_ITEMSELECTED, HANDLER(GameMenu, HandleItemSelected));
-	SubscribeToEvent(address_, E_ITEMSELECTED, HANDLER(GameMenu, HandleItemSelected));
-	SubscribeToEvent(serverName_, E_ITEMDESELECTED, HANDLER(GameMenu, HandleItemDeselected));
-	SubscribeToEvent(gameMode_, E_ITEMDESELECTED, HANDLER(GameMenu, HandleItemDeselected));
-	SubscribeToEvent(address_, E_ITEMDESELECTED, HANDLER(GameMenu, HandleItemDeselected));
-	SubscribeToEvent(gameMenu_->GetChild("host", true), E_RELEASED, HANDLER(GameMenu, HandleButtonRelease));
-	SubscribeToEvent(gameMenu_->GetChild("list", true), E_RELEASED, HANDLER(GameMenu, HandleButtonRelease));
-	SubscribeToEvent(gameMenu_->GetChild("join", true), E_RELEASED, HANDLER(GameMenu, HandleButtonRelease));
-	SubscribeToEvent(mainMenuButt_, E_RELEASED, HANDLER(GameMenu, HandleButtonRelease));
-	SubscribeToEvent(ipLineEdit_, E_TEXTFINISHED, HANDLER(GameMenu, HandleTextFinished));
+	SubscribeToEvent(serverName_, E_ITEMSELECTED, URHO3D_HANDLER(GameMenu, HandleItemSelected));
+	SubscribeToEvent(gameMode_, E_ITEMSELECTED, URHO3D_HANDLER(GameMenu, HandleItemSelected));
+	SubscribeToEvent(address_, E_ITEMSELECTED, URHO3D_HANDLER(GameMenu, HandleItemSelected));
+	SubscribeToEvent(serverName_, E_ITEMDESELECTED, URHO3D_HANDLER(GameMenu, HandleItemDeselected));
+	SubscribeToEvent(gameMode_, E_ITEMDESELECTED, URHO3D_HANDLER(GameMenu, HandleItemDeselected));
+	SubscribeToEvent(address_, E_ITEMDESELECTED, URHO3D_HANDLER(GameMenu, HandleItemDeselected));
+	SubscribeToEvent(gameMenu_->GetChild("host", true), E_RELEASED, URHO3D_HANDLER(GameMenu, HandleButtonRelease));
+	SubscribeToEvent(gameMenu_->GetChild("list", true), E_RELEASED, URHO3D_HANDLER(GameMenu, HandleButtonRelease));
+	SubscribeToEvent(gameMenu_->GetChild("join", true), E_RELEASED, URHO3D_HANDLER(GameMenu, HandleButtonRelease));
+	SubscribeToEvent(mainMenuButt_, E_RELEASED, URHO3D_HANDLER(GameMenu, HandleButtonRelease));
+	SubscribeToEvent(ipLineEdit_, E_TEXTFINISHED, URHO3D_HANDLER(GameMenu, HandleTextFinished));
 
-	SubscribeToEvent(E_GAMEMENUDISPLAY, HANDLER(GameMenu, HandleDisplayMenu));
-	SubscribeToEvent(E_SERVERCONNECTED, HANDLER(GameMenu, HandleServerConnect));
-	SubscribeToEvent(E_NETWORKMESSAGE, HANDLER(GameMenu, HandleNetworkMessage));
+	SubscribeToEvent(E_GAMEMENUDISPLAY, URHO3D_HANDLER(GameMenu, HandleDisplayMenu));
+	SubscribeToEvent(E_SERVERCONNECTED, URHO3D_HANDLER(GameMenu, HandleServerConnect));
+	SubscribeToEvent(E_NETWORKMESSAGE, URHO3D_HANDLER(GameMenu, HandleNetworkMessage));
 
 	//gameMenu_->GetChild("host", true)->SetEnabledRecursive(false);
 	//gameMenu_->GetChild("host", true)->SetVisible(false);
