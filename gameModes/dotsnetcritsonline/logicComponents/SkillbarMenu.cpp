@@ -9,6 +9,7 @@
 #include <Urho3D/Graphics/AnimatedModel.h>
 #include <Urho3D/Graphics/AnimationController.h>
 #include <Urho3D/Math/BoundingBox.h>
+#include <Urho3D/UI/Button.h>
 #include <Urho3D/Graphics/Camera.h>
 #include <Urho3D/Physics/CollisionShape.h>
 #include <Urho3D/Core/CoreEvents.h>
@@ -46,6 +47,7 @@ SkillbarMenu::SkillbarMenu(Context* context, Urho3DPlayer* main) :
 	LogicComponent(context)
 {
 	main_ = main;
+	skillbarIndex_ = 0;
 }
 
 SkillbarMenu::~SkillbarMenu()
@@ -58,6 +60,11 @@ SkillbarMenu::~SkillbarMenu()
 	if (menu_)
 	{
 		main_->ui_->GetRoot()->RemoveChild(menu_);
+	}
+
+	if (activeSkillbar_)
+	{
+		main_->ui_->GetRoot()->RemoveChild(activeSkillbar_);
 	}
 
 	for (int x = 0; x < skillbars_.Size(); x++)
@@ -87,6 +94,11 @@ void SkillbarMenu::Start()
 
 		SubscribeToEvent(menuButt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
 
+		activeSkillbar_ = main_->ui_->LoadLayout(main_->cache_->GetResource<XMLFile>("UI/DNCOSkillBar.xml"));
+		main_->ui_->GetRoot()->AddChild(activeSkillbar_);
+		main_->RecursiveAddGuiTargets(activeSkillbar_);
+		main_->ElementRecursiveResize(activeSkillbar_);
+
 		menu_ = main_->ui_->LoadLayout(main_->cache_->GetResource<XMLFile>("UI/skillbarMenu.xml"));
 		main_->ui_->GetRoot()->AddChild(menu_);
 		main_->RecursiveAddGuiTargets(menu_);
@@ -98,6 +110,7 @@ void SkillbarMenu::Start()
 		skillbarList_ = menu_->GetChild("skillbars", true);
 		addButt_ = menu_->GetChild("add", true);
 		removeButt_ = menu_->GetChild("remove", true);
+		loadButt_ = menu_->GetChild("load", true);
 		skill0Butt_ = menu_->GetChild("skill0", true);
 		skill1Butt_ = menu_->GetChild("skill1", true);
 		skill2Butt_ = menu_->GetChild("skill2", true);
@@ -108,8 +121,13 @@ void SkillbarMenu::Start()
 		XMLFile* xmlFile = main_->cache_->GetResource<XMLFile>("Objects/skillbar.xml");
 		skillbar_ = node_->GetScene()->InstantiateXML(xmlFile->GetRoot(), Vector3::ZERO, Quaternion(), LOCAL);
 
+		Node* newBar = skillbar_->Clone(LOCAL);
+		skillbars_.Push(newBar);
+		SetSkillbar(skillbars_.Size() - 1);
+
 		SubscribeToEvent(addButt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
 		SubscribeToEvent(removeButt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
+		SubscribeToEvent(loadButt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
 		SubscribeToEvent(skill0Butt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
 		SubscribeToEvent(skill1Butt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
 		SubscribeToEvent(skill2Butt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
@@ -284,6 +302,15 @@ void SkillbarMenu::HandleButtonRelease(StringHash eventType, VariantMap& eventDa
 				"Data/Objects/skillbars/" + String(skillbarfileNames_.Size() - 1) + ".xml");
 
 		PopulateLists();
+	}
+	else if (ele == loadButt_)
+	{
+		if (selectedSkillbarFilename_ != "")
+		{
+			Node* newBar = skillbar_->Clone(LOCAL);
+			skillbars_.Push(newBar);
+			SetSkillbar(skillbars_.Size() - 1);
+		}
 	}
 }
 
@@ -475,4 +502,130 @@ void SkillbarMenu::HandleItemDeselected(StringHash eventType, VariantMap& eventD
 void SkillbarMenu::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
 	float timeStep = eventData[Update::P_TIMESTEP].GetFloat();
+}
+
+void SkillbarMenu::SetSkillbar(int index)
+{
+	String skill;
+	UIElement* sprite;
+
+	//skill0
+
+	skill = skillbars_[index]->GetVar("skill0").GetString();
+
+	activeSkillbar_->GetChild("skill0", false)->SetVar("skill", skill);
+
+	sprite = activeSkillbar_->GetChild("skill0", false)->GetChild(0)->GetChild(0);
+
+	if (skill != "")
+	{
+		((Sprite*)(sprite))->
+				SetTexture(main_->cache_->GetResource<Texture2D>("Textures/" + skill + "/icon.png"));
+
+		sprite->SetOpacity(1.0f);
+	}
+	else
+	{
+		sprite->SetOpacity(0.0f);
+	}
+
+	//skill1
+
+	skill = skillbars_[index]->GetVar("skill1").GetString();
+
+	activeSkillbar_->GetChild("skill1", false)->SetVar("skill", skill);
+
+	sprite = activeSkillbar_->GetChild("skill1", false)->GetChild(0)->GetChild(0);
+
+	if (skill != "")
+	{
+		((Sprite*)(sprite))->
+				SetTexture(main_->cache_->GetResource<Texture2D>("Textures/" + skill + "/icon.png"));
+
+		sprite->SetOpacity(1.0f);
+	}
+	else
+	{
+		sprite->SetOpacity(0.0f);
+	}
+
+	//skill2
+
+	skill = skillbars_[index]->GetVar("skill2").GetString();
+
+	activeSkillbar_->GetChild("skill2", false)->SetVar("skill", skill);
+
+	sprite = activeSkillbar_->GetChild("skill2", false)->GetChild(0)->GetChild(0);
+
+	if (skill != "")
+	{
+		((Sprite*)(sprite))->
+				SetTexture(main_->cache_->GetResource<Texture2D>("Textures/" + skill + "/icon.png"));
+
+		sprite->SetOpacity(1.0f);
+	}
+	else
+	{
+		sprite->SetOpacity(0.0f);
+	}
+
+	//skill3
+
+	skill = skillbars_[index]->GetVar("skill3").GetString();
+
+	activeSkillbar_->GetChild("skill3", false)->SetVar("skill", skill);
+
+	sprite = activeSkillbar_->GetChild("skill3", false)->GetChild(0)->GetChild(0);
+
+	if (skill != "")
+	{
+		((Sprite*)(sprite))->
+				SetTexture(main_->cache_->GetResource<Texture2D>("Textures/" + skill + "/icon.png"));
+
+		sprite->SetOpacity(1.0f);
+	}
+	else
+	{
+		sprite->SetOpacity(0.0f);
+	}
+
+	//skill4
+
+	skill = skillbars_[index]->GetVar("skill4").GetString();
+
+	activeSkillbar_->GetChild("skill4", false)->SetVar("skill", skill);
+
+	sprite = activeSkillbar_->GetChild("skill4", false)->GetChild(0)->GetChild(0);
+
+	if (skill != "")
+	{
+		((Sprite*)(sprite))->
+				SetTexture(main_->cache_->GetResource<Texture2D>("Textures/" + skill + "/icon.png"));
+
+		sprite->SetOpacity(1.0f);
+	}
+	else
+	{
+		sprite->SetOpacity(0.0f);
+	}
+
+	//skill5
+
+	skill = skillbars_[index]->GetVar("skill5").GetString();
+
+	activeSkillbar_->GetChild("skill5", false)->SetVar("skill", skill);
+
+	sprite = activeSkillbar_->GetChild("skill5", false)->GetChild(0)->GetChild(0);
+
+	if (skill != "")
+	{
+		((Sprite*)(sprite))->
+				SetTexture(main_->cache_->GetResource<Texture2D>("Textures/" + skill + "/icon.png"));
+
+		sprite->SetOpacity(1.0f);
+	}
+	else
+	{
+		sprite->SetOpacity(0.0f);
+	}
 }

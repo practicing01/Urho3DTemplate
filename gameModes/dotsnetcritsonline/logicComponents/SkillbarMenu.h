@@ -30,14 +30,17 @@ public:
 	void PopulateLists();
     void HandleItemSelected(StringHash eventType, VariantMap& eventData);
     void HandleItemDeselected(StringHash eventType, VariantMap& eventData);
+    void SetSkillbar(int index);
 
 	Urho3DPlayer* main_;
 	SharedPtr<UIElement> menuButt_;
 	SharedPtr<UIElement> menu_;
+	SharedPtr<UIElement> activeSkillbar_;
 	UIElement* skillsList_;
 	UIElement* skillbarList_;
 	UIElement* addButt_;
 	UIElement* removeButt_;
+	UIElement* loadButt_;
 	UIElement* skill0Butt_;
 	UIElement* skill1Butt_;
 	UIElement* skill2Butt_;
@@ -51,4 +54,5 @@ public:
 
 	SharedPtr<Node> skillbar_;
 	Vector<Node*> skillbars_;
+	int skillbarIndex_;
 };
