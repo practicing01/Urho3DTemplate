@@ -111,12 +111,20 @@ void SkillbarMenu::Start()
 		addButt_ = menu_->GetChild("add", true);
 		removeButt_ = menu_->GetChild("remove", true);
 		loadButt_ = menu_->GetChild("load", true);
+		prevButt_ = activeSkillbar_->GetChild("prev", true);
+		nextButt_ = activeSkillbar_->GetChild("next", true);
 		skill0Butt_ = menu_->GetChild("skill0", true);
 		skill1Butt_ = menu_->GetChild("skill1", true);
 		skill2Butt_ = menu_->GetChild("skill2", true);
 		skill3Butt_ = menu_->GetChild("skill3", true);
 		skill4Butt_ = menu_->GetChild("skill4", true);
 		skill5Butt_ = menu_->GetChild("skill5", true);
+		activeSkill0Butt_ = activeSkillbar_->GetChild("skill0", true);
+		activeSkill1Butt_ = activeSkillbar_->GetChild("skill1", true);
+		activeSkill2Butt_ = activeSkillbar_->GetChild("skill2", true);
+		activeSkill3Butt_ = activeSkillbar_->GetChild("skill3", true);
+		activeSkill4Butt_ = activeSkillbar_->GetChild("skill4", true);
+		activeSkill5Butt_ = activeSkillbar_->GetChild("skill5", true);
 
 		XMLFile* xmlFile = main_->cache_->GetResource<XMLFile>("Objects/skillbar.xml");
 		skillbar_ = node_->GetScene()->InstantiateXML(xmlFile->GetRoot(), Vector3::ZERO, Quaternion(), LOCAL);
@@ -134,6 +142,14 @@ void SkillbarMenu::Start()
 		SubscribeToEvent(skill3Butt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
 		SubscribeToEvent(skill4Butt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
 		SubscribeToEvent(skill5Butt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
+		SubscribeToEvent(prevButt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
+		SubscribeToEvent(nextButt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
+		SubscribeToEvent(activeSkill0Butt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
+		SubscribeToEvent(activeSkill1Butt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
+		SubscribeToEvent(activeSkill2Butt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
+		SubscribeToEvent(activeSkill3Butt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
+		SubscribeToEvent(activeSkill4Butt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
+		SubscribeToEvent(activeSkill5Butt_, E_RELEASED, URHO3D_HANDLER(SkillbarMenu, HandleButtonRelease));
 
 		SubscribeToEvent(skillsList_, E_ITEMSELECTED, URHO3D_HANDLER(SkillbarMenu, HandleItemSelected));
 		SubscribeToEvent(skillsList_, E_ITEMDESELECTED, URHO3D_HANDLER(SkillbarMenu, HandleItemDeselected));
@@ -310,6 +326,77 @@ void SkillbarMenu::HandleButtonRelease(StringHash eventType, VariantMap& eventDa
 			Node* newBar = skillbar_->Clone(LOCAL);
 			skillbars_.Push(newBar);
 			SetSkillbar(skillbars_.Size() - 1);
+			skillbarIndex_ = skillbars_.Size() - 1;
+		}
+	}
+	else if (ele == prevButt_)
+	{
+		if (skillbarIndex_ - 1 >= 0)
+		{
+			skillbarIndex_--;
+			SetSkillbar(skillbarIndex_);
+		}
+	}
+	else if (ele == nextButt_)
+	{
+		if (skillbarIndex_ + 1 < skillbars_.Size())
+		{
+			skillbarIndex_++;
+			SetSkillbar(skillbarIndex_);
+		}
+	}
+	else if (ele == activeSkill0Butt_)
+	{
+		if (((Sprite*)(activeSkill0Butt_->GetChild(0)->GetChild(0)))->GetTexture() != NULL)
+		{
+			VariantMap vm;
+        	vm[SkillbarButt::P_SKILL] = activeSkill0Butt_->GetVar("skill").GetString();
+        	SendEvent(E_SKILLBARBUTT, vm);
+		}
+	}
+	else if (ele == activeSkill1Butt_)
+	{
+		if (((Sprite*)(activeSkill1Butt_->GetChild(0)->GetChild(0)))->GetTexture() != NULL)
+		{
+			VariantMap vm;
+        	vm[SkillbarButt::P_SKILL] = activeSkill1Butt_->GetVar("skill").GetString();
+        	SendEvent(E_SKILLBARBUTT, vm);
+		}
+	}
+	else if (ele == activeSkill2Butt_)
+	{
+		if (((Sprite*)(activeSkill2Butt_->GetChild(0)->GetChild(0)))->GetTexture() != NULL)
+		{
+			VariantMap vm;
+        	vm[SkillbarButt::P_SKILL] = activeSkill2Butt_->GetVar("skill").GetString();
+        	SendEvent(E_SKILLBARBUTT, vm);
+		}
+	}
+	else if (ele == activeSkill3Butt_)
+	{
+		if (((Sprite*)(activeSkill3Butt_->GetChild(0)->GetChild(0)))->GetTexture() != NULL)
+		{
+			VariantMap vm;
+        	vm[SkillbarButt::P_SKILL] = activeSkill3Butt_->GetVar("skill").GetString();
+        	SendEvent(E_SKILLBARBUTT, vm);
+		}
+	}
+	else if (ele == activeSkill4Butt_)
+	{
+		if (((Sprite*)(activeSkill4Butt_->GetChild(0)->GetChild(0)))->GetTexture() != NULL)
+		{
+			VariantMap vm;
+        	vm[SkillbarButt::P_SKILL] = activeSkill4Butt_->GetVar("skill").GetString();
+        	SendEvent(E_SKILLBARBUTT, vm);
+		}
+	}
+	else if (ele == activeSkill5Butt_)
+	{
+		if (((Sprite*)(activeSkill5Butt_->GetChild(0)->GetChild(0)))->GetTexture() != NULL)
+		{
+			VariantMap vm;
+        	vm[SkillbarButt::P_SKILL] = activeSkill5Butt_->GetVar("skill").GetString();
+        	SendEvent(E_SKILLBARBUTT, vm);
 		}
 	}
 }

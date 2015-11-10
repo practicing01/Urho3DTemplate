@@ -282,6 +282,11 @@ URHO3D_EVENT(E_SETSCENEVOTE, SetSceneVote)
 	URHO3D_PARAM(P_SCENENAME, SceneName);//string
 }
 
+URHO3D_EVENT(E_SKILLBARBUTT, SkillbarButt)
+{
+	URHO3D_PARAM(P_SKILL, Skill);//string
+}
+
 extern const int GAMEMODEMSG_RESPAWNNODE;
 extern const int GAMEMODEMSG_GETLC;
 extern const int GAMEMODEMSG_SCENEVOTE;

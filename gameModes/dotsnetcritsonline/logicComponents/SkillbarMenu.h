@@ -47,6 +47,14 @@ public:
 	UIElement* skill3Butt_;
 	UIElement* skill4Butt_;
 	UIElement* skill5Butt_;
+	UIElement* prevButt_;
+	UIElement* nextButt_;
+	UIElement* activeSkill0Butt_;
+	UIElement* activeSkill1Butt_;
+	UIElement* activeSkill2Butt_;
+	UIElement* activeSkill3Butt_;
+	UIElement* activeSkill4Butt_;
+	UIElement* activeSkill5Butt_;
 	Vector<String> skillfileNames_;
 	Vector<String> skillbarfileNames_;
 	String selectedSkillFilename_;

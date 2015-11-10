@@ -30,6 +30,7 @@
 
 #include "MoveByTouch.h"
 #include "../../../network/NetworkConstants.h"
+#include "../../../network/NetPulse.h"
 #include "../../../Constants.h"
 
 #include "Gravity.h"
@@ -373,6 +374,7 @@ void MoveByTouch::HandleNodeCollision(StringHash eventType, VariantMap& eventDat
 
 void MoveByTouch::HandleSetLagTime(StringHash eventType, VariantMap& eventData)
 {
+
 	Connection* sender = (Connection*)(eventData[SetLagTime::P_CONNECTION].GetPtr());
 	if (sender == main_->GetConnByClientID(node_->GetComponent<NodeInfo>()->clientID_))
 	{
@@ -406,11 +408,16 @@ void MoveByTouch::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 			float gravity = msg.ReadFloat();
 			float gravityRamp = msg.ReadFloat();
 
-			SubscribeToEvent(E_SETLAGTIME, URHO3D_HANDLER(MoveByTouch, HandleSetLagTime));
+			Node* rootNode = main_->GetRootNode(node_);
 
-			VariantMap vm;
-			vm[GetLagTime::P_CONNECTION] = myconn;
-			SendEvent(E_GETLAGTIME, vm);
+			if (rootNode->GetComponent<NetPulse>())
+			{
+				lagTime_ = rootNode->GetComponent<NetPulse>()->GetLagTime(myconn);
+			}
+			else
+			{
+				lagTime_ = 0.0f;
+			}
 
 			//todo change to be asynchronous
 			speedRamp += speed * lagTime_;
@@ -437,7 +444,7 @@ void MoveByTouch::HandleLCMSG(StringHash eventType, VariantMap& eventData)
 				msg.WriteFloat(gravity_);
 				msg.WriteFloat(gravityRamp);
 
-				vm.Clear();
+				VariantMap vm;
 				vm[ExclusiveNetBroadcast::P_EXCLUDEDCONNECTION] = myconn;
 				vm[ExclusiveNetBroadcast::P_MSG] = msg.GetBuffer();
 				SendEvent(E_EXCLUSIVENETBROADCAST, vm);
@@ -454,11 +461,16 @@ void MoveByTouch::HandleGetLc(StringHash eventType, VariantMap& eventData)
 	{
 		Connection* conn = (Connection*)(eventData[GetLc::P_CONNECTION].GetPtr());
 
-		SubscribeToEvent(E_SETLAGTIME, URHO3D_HANDLER(MoveByTouch, HandleSetLagTime));
+		Node* rootNode = main_->GetRootNode(node_);
 
-		VariantMap vm;
-		vm[GetLagTime::P_CONNECTION] = conn;
-		SendEvent(E_GETLAGTIME, vm);
+		if (rootNode->GetComponent<NetPulse>())//todo figure out why this is needed & if netpulse actually works.
+		{
+			lagTime_ = rootNode->GetComponent<NetPulse>()->GetLagTime(conn);
+		}
+		else
+		{
+			lagTime_ = 0.0f;
+		}
 
 		//todo change to be asynchronous
 		float speedRamp = speedRamp_ + (speed_ * lagTime_);

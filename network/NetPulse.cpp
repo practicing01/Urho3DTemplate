@@ -141,3 +141,16 @@ void NetPulse::HandleGetLagTime(StringHash eventType, VariantMap& eventData)
 		}
 	}
 }
+
+float NetPulse::GetLagTime(Connection* conn)
+{
+	for (int x = 0; x < pulseConns_.Size(); x++)
+	{
+		if (pulseConns_[x]->connection_ == conn)
+		{
+			return pulseConns_[x]->lagTime_;
+		}
+	}
+
+	return 0.0f;
+}

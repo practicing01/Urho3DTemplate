@@ -29,6 +29,7 @@ public:
 	void ClearConnections();
     void RemoveConnection(Connection* conn);
 	void HandleGetLagTime(StringHash eventType, VariantMap& eventData);
+	float GetLagTime(Connection* conn);
 
 	Urho3DPlayer* main_;
 

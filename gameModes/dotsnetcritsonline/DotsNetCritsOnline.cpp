@@ -32,6 +32,7 @@
 
 #include "DotsNetCritsOnline.h"
 #include "../../network/NetworkConstants.h"
+#include "../../network/NetPulse.h"
 #include "../../network/ClientInfo.h"
 #include "../../Constants.h"
 
@@ -390,11 +391,8 @@ void DotsNetCritsOnline::HandleLCMSG(StringHash eventType, VariantMap& eventData
 		int gmMSG = msg.ReadInt();
 
 		Connection* myconn = main_->GetConn(node_);
-		SubscribeToEvent(E_SETLAGTIME, URHO3D_HANDLER(DotsNetCritsOnline, HandleSetLagTime));
 
-		VariantMap vm;
-		vm[GetLagTime::P_CONNECTION] = myconn;
-		SendEvent(E_GETLAGTIME, vm);
+		float lagTime = node_->GetComponent<NetPulse>()->GetLagTime(myconn);
 
 		if (gmMSG == GAMEMODEMSG_SPAWNCHICKEN)
 		{
@@ -421,7 +419,7 @@ void DotsNetCritsOnline::HandleSetLagTime(StringHash eventType, VariantMap& even
 }
 
 void DotsNetCritsOnline::HandleGetLc(StringHash eventType, VariantMap& eventData)
-{return;
+{
 	Node* clientNode = (Node*)(eventData[GetLc::P_NODE].GetPtr());
 
 	if (clientNode != node_)
@@ -444,11 +442,7 @@ void DotsNetCritsOnline::HandleGetLc(StringHash eventType, VariantMap& eventData
 
 		Connection* conn = (Connection*)(eventData[GetLc::P_CONNECTION].GetPtr());
 
-		SubscribeToEvent(E_SETLAGTIME, URHO3D_HANDLER(DotsNetCritsOnline, HandleSetLagTime));
-
-		VariantMap vm;
-		vm[GetLagTime::P_CONNECTION] = conn;
-		SendEvent(E_GETLAGTIME, vm);
+		float lagTime = node_->GetComponent<NetPulse>()->GetLagTime(conn);
 
 		VectorBuffer msg;
 		msg.WriteInt(node_->GetComponent<ClientInfo>()->clientID_);
@@ -551,8 +545,8 @@ void DotsNetCritsOnline::LoadScene(String fileName)
 			network_->BroadcastMessage(MSG_GAMEMODEMSG, true, true, msg_);
 		}
 
-		//SpawnChicken(node_->GetComponent<ClientInfo>()->clientID_, nodeIDCounter_);
-		//nodeIDCounter_++;
+		SpawnChicken(node_->GetComponent<ClientInfo>()->clientID_, nodeIDCounter_);
+		nodeIDCounter_++;
 	}
 }
 
